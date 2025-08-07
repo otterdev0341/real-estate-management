@@ -1,0 +1,96 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username: sea_salt_user
+  - changeSet:
+      id: A
+      author: otterdev
+      comment: Create file_details table with constraints, indexes, and foreign keys
+      changes:
+        - createTable:
+            tableName: file_details
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: object_key
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: path
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: type
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: size
+                  type: bigint
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: UUID
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: file_details
+            columnNames: name, created_by, type
+            constraintName: uq_file_details_name_created_by
+
+        - createIndex:
+            tableName: file_details
+            indexName: idx_file_details_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - addForeignKeyConstraint:
+            baseTableName: file_details
+            baseColumnNames: type
+            constraintName: fk_file_details_type
+            referencedTableName: file_types
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade
+
+        - addForeignKeyConstraint:
+            baseTableName: file_details
+            baseColumnNames: created_by
+            constraintName: fk_file_details_created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade

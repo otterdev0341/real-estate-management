@@ -1,0 +1,150 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username: sea_salt_user
+  - changeSet:
+      id: A
+      author: otterdev
+      comment: Create properties table with constraints, indexes, and foreign keys
+      changes:
+        - createTable:
+            tableName: properties
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: description
+                  type: varchar(255)
+
+              - column:
+                  name: specific
+                  type: varchar(255)
+
+              - column:
+                  name: highlight
+                  type: varchar(50)
+
+              - column:
+                  name: area
+                  type: varchar(50)
+
+              - column:
+                  name: price
+                  type: decimal(10,2)
+
+              - column:
+                  name: f_s_p
+                  type: decimal(10,2)
+
+              - column:
+                  name: status
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: owner_by
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: map_url
+                  type: varchar(255)
+
+              - column:
+                  name: lat
+                  type: varchar(50)
+
+              - column:
+                  name: lng
+                  type: varchar(50)
+
+              - column:
+                  name: sold
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: UUID
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: properties
+            columnNames: name, created_by
+            constraintName: uq_properties_name_created_by
+
+        - createIndex:
+            tableName: properties
+            indexName: idx_properties_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - createIndex:
+            tableName: properties
+            indexName: idx_properties_status
+            columns:
+              - column:
+                  name: status
+
+        - createIndex:
+            tableName: properties
+            indexName: idx_properties_owner_by
+            columns:
+              - column:
+                  name: owner_by
+
+        - addForeignKeyConstraint:
+            baseTableName: properties
+            baseColumnNames: status
+            constraintName: fk_properties_status
+            referencedTableName: property_statuses
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade
+
+        - addForeignKeyConstraint:
+            baseTableName: properties
+            baseColumnNames: owner_by
+            constraintName: fk_properties_owner
+            referencedTableName: contacts
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade
+
+        - addForeignKeyConstraint:
+            baseTableName: properties
+            baseColumnNames: created_by
+            constraintName: fk_properties_created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade

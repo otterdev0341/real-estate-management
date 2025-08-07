@@ -1,0 +1,117 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username: sea_salt_user
+  - changeSet:
+      id: A
+      author: otterdev
+      comment: Create contacts table with constraints, indexes, and foreign keys
+      changes:
+        - createTable:
+            tableName: contacts
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+
+              - column:
+                  name: business_name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: internal_name
+                  type: varchar(100)
+
+              - column:
+                  name: detail
+                  type: varchar(255)
+
+              - column:
+                  name: note
+                  type: varchar(255)
+
+              - column:
+                  name: contact_type
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: address
+                  type: varchar(255)
+
+              - column:
+                  name: phone
+                  type: varchar(50)
+
+              - column:
+                  name: mobile_phone
+                  type: varchar(50)
+
+              - column:
+                  name: line
+                  type: varchar(50)
+
+              - column:
+                  name: email
+                  type: varchar(255)
+
+              - column:
+                  name: created_by
+                  type: UUID
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: contacts
+            columnNames: business_name, created_by
+            constraintName: uq_contacts_business_name_created_by
+
+        - createIndex:
+            tableName: contacts
+            indexName: idx_contacts_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - createIndex:
+            tableName: contacts
+            indexName: idx_contacts_contact_type
+            columns:
+              - column:
+                  name: contact_type
+
+        - addForeignKeyConstraint:
+            baseTableName: contacts
+            baseColumnNames: contact_type
+            constraintName: fk_contacts_contact_type
+            referencedTableName: contact_types
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade
+
+        - addForeignKeyConstraint:
+            baseTableName: contacts
+            baseColumnNames: created_by
+            constraintName: fk_contacts_created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade

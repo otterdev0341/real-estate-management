@@ -1,0 +1,64 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username: sea_salt_user
+  - changeSet:
+      id: A
+      author: otterdev
+      comment: Create property_types table with constraints and foreign key to users
+      changes:
+        - createTable:
+            tableName: property_types
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+                    
+
+              - column:
+                  name: detail
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: UUID
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: property_types
+            columnNames: detail, created_by
+            constraintName: uq_property_types_detail_created_by
+
+        - createIndex:
+            tableName: property_types
+            indexName: idx_property_types_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - addForeignKeyConstraint:
+            baseTableName: property_types
+            baseColumnNames: created_by
+            constraintName: fk_property_types_created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade

@@ -1,0 +1,89 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username: sea_salt_user
+  - changeSet:
+      id: A
+      author: otterdev
+      comment: Create memos table with constraints and foreign keys
+      changes:
+        - createTable:
+            tableName: memos
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: detail
+                  type: varchar(255)
+
+              - column:
+                  name: memo_type
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: UUID
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: memos
+            columnNames: name, created_by
+            constraintName: uq_memos_name_created_by
+
+        - createIndex:
+            tableName: memos
+            indexName: idx_memos_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - createIndex:
+            tableName: memos
+            indexName: idx_memos_memo_type
+            columns:
+              - column:
+                  name: memo_type
+
+        - addForeignKeyConstraint:
+            baseTableName: memos
+            baseColumnNames: memo_type
+            constraintName: fk_memos_memo_type
+            referencedTableName: memo_types
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade
+
+        - addForeignKeyConstraint:
+            baseTableName: memos
+            baseColumnNames: created_by
+            constraintName: fk_memos_created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade

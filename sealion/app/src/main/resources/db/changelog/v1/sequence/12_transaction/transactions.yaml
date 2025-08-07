@@ -1,0 +1,73 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username: sea_salt_user
+  - changeSet:
+      id: A
+      author: otterdev
+      comment: Create transactions table with constraints and foreign keys
+      changes:
+        - createTable:
+            tableName: transactions
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+
+              - column:
+                  name: note
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: transaction_type
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: UUID
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            tableName: transactions
+            indexName: idx_transactions_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - addForeignKeyConstraint:
+            baseTableName: transactions
+            baseColumnNames: transaction_type
+            constraintName: fk_transactions_transaction_type
+            referencedTableName: transaction_types
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade
+
+        - addForeignKeyConstraint:
+            baseTableName: transactions
+            baseColumnNames: created_by
+            constraintName: fk_transactions_created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade

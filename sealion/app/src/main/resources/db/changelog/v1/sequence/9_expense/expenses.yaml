@@ -1,0 +1,87 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username: sea_salt_user
+  - changeSet:
+      id: A
+      author: otterdev
+      comment: Create expenses table with constraints and foreign keys
+      changes:
+        - createTable:
+            tableName: expenses
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+
+              - column:
+                  name: detail
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: expense_type
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: expenses
+            columnNames: detail, created_by, expense_type
+            constraintName: uq_expenses_detail_created_by_expense_type
+
+        - createIndex:
+            tableName: expenses
+            indexName: idx_expenses_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - createIndex:
+            tableName: expenses
+            indexName: idx_expenses_expense_type
+            columns:
+              - column:
+                  name: expense_type
+
+        - addForeignKeyConstraint:
+            baseTableName: expenses
+            baseColumnNames: expense_type
+            constraintName: fk_expenses_expense_type
+            referencedTableName: expense_types
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade
+
+        - addForeignKeyConstraint:
+            baseTableName: expenses
+            baseColumnNames: created_by
+            constraintName: fk_expenses_created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="real" target="21" />
+      <module name="real-estate-management.main" target="21" />
+      <module name="real-estate-management.test" target="21" />
+      <module name="real.app" target="21" />
+      <module name="real.app.main" target="21" />
+      <module name="real.app.test" target="21" />
+      <module name="real.auth" target="21" />
+      <module name="real.auth.main" target="21" />
+      <module name="real.auth.test" target="21" />
+      <module name="real.common" target="21" />
+      <module name="real.common.main" target="21" />
+      <module name="real.common.test" target="21" />
+      <module name="real.contact" target="21" />
+      <module name="real.contact.main" target="21" />
+      <module name="real.contact.test" target="21" />
+      <module name="real.expense" target="21" />
+      <module name="real.expense.main" target="21" />
+      <module name="real.expense.test" target="21" />
+      <module name="real.integrationTest" target="21" />
+      <module name="real.main" target="21" />
+      <module name="real.native-test" target="21" />
+      <module name="real.quarkus-generated-sources" target="21" />
+      <module name="real.quarkus-test-generated-sources" target="21" />
+      <module name="real.test" target="21" />
+      <module name="real.user" target="21" />
+      <module name="real.user.main" target="21" />
+      <module name="real.user.test" target="21" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="real-estate-management.app.main" options="-parameters" />
+      <module name="real.main" options="-parameters" />
+    </option>
+  </component>
+</project>

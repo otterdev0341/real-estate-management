@@ -1,0 +1,88 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username: sea_salt_user
+  - changeSet:
+      id: A
+      author: otterdev
+      comment: Create invest_transactions table with constraints and foreign keys
+      changes:
+        - createTable:
+            tableName: invest_transactions
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+
+              - column:
+                  name: transaction
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: note
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: property
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: UUID
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            tableName: invest_transactions
+            indexName: idx_invest_transactions_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - addForeignKeyConstraint:
+            baseTableName: invest_transactions
+            baseColumnNames: transaction
+            constraintName: fk_invest_transactions_transaction
+            referencedTableName: transactions
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade
+
+        - addForeignKeyConstraint:
+            baseTableName: invest_transactions
+            baseColumnNames: property
+            constraintName: fk_invest_transactions_property
+            referencedTableName: properties
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade
+
+        - addForeignKeyConstraint:
+            baseTableName: invest_transactions
+            baseColumnNames: created_by
+            constraintName: fk_invest_transactions_created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade

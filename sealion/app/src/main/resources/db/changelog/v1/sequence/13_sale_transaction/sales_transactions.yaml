@@ -1,0 +1,114 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username: sea_salt_user
+  - changeSet:
+      id: A
+      author: otterdev
+      comment: Create sale_transactions table with constraints and foreign keys
+      changes:
+        - createTable:
+            tableName: sale_transactions
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+
+              - column:
+                  name: transaction
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: property
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: contact
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: note
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: price
+                  type: decimal(10,2)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: UUID
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: sale_transactions
+            columnNames: property, transaction, created_by
+            constraintName: uq_sale_transactions_property_transaction_created_by
+
+        - createIndex:
+            tableName: sale_transactions
+            indexName: idx_sale_transactions_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - addForeignKeyConstraint:
+            baseTableName: sale_transactions
+            baseColumnNames: transaction
+            constraintName: fk_sale_transactions_transaction
+            referencedTableName: transactions
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade
+
+        - addForeignKeyConstraint:
+            baseTableName: sale_transactions
+            baseColumnNames: property
+            constraintName: fk_sale_transactions_property
+            referencedTableName: properties
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade
+
+        - addForeignKeyConstraint:
+            baseTableName: sale_transactions
+            baseColumnNames: contact
+            constraintName: fk_sale_transactions_contact
+            referencedTableName: contacts
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade
+
+        - addForeignKeyConstraint:
+            baseTableName: sale_transactions
+            baseColumnNames: created_by
+            constraintName: fk_sale_transactions_created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade

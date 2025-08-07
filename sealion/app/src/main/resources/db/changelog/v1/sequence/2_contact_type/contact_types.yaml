@@ -1,0 +1,63 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username: sea_salt_user
+  - changeSet:
+      id: A
+      author: otterdev
+      comment: Create contact_types table with unique constraint and index
+      changes:
+        - createTable:
+            tableName: contact_types
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+
+              - column:
+                  name: detail
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: contact_types
+            baseColumnNames: created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_contact_types_created_by_users
+            onDelete: RESTRICT
+            onUpdate: CASCADE
+
+        - addUniqueConstraint:
+            tableName: contact_types
+            columnNames: detail, created_by
+            constraintName: uq_contact_types_detail_created_by
+
+        - createIndex:
+            tableName: contact_types
+            indexName: idx_contact_types_created_by
+            columns:
+              - column:
+                  name: created_by

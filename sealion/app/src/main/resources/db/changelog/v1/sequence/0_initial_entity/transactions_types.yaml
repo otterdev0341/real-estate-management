@@ -1,0 +1,58 @@
+databaseChangeLog:
+- preConditions:
+    - runningAs:
+        username:  sea_salt_user
+- changeSet:
+    id: A
+    author: otterdev
+    labels: init-data
+    context: default
+    comment: Create transaction_types table and insert default values
+    changes:
+    - createTable:
+        tableName: transaction_types
+        columns:
+            - column:
+                name: id
+                type: UUID
+                constraints:
+                    primaryKey: true
+                    nullable: false
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+            - column:
+                name: detail
+                type: varchar(50)
+                constraints:
+                    nullable: false
+                    unique: true
+
+    - insert:
+        tableName: transaction_types
+        columns:
+            - column:
+                name: id
+                valueComputed: "gen_random_uuid()"
+            - column:
+                name: detail
+                value: "sale"
+
+    - insert:
+        tableName: transaction_types
+        columns:
+            - column:
+                name: id
+                valueComputed: "gen_random_uuid()"
+            - column:
+                name: detail
+                value: "investment"
+
+    - insert:
+        tableName: transaction_types
+        columns:
+            - column:
+                name: id
+                valueComputed: "gen_random_uuid()"
+            - column:
+                name: detail
+                value: "payment"

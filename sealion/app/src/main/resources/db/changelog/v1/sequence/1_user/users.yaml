@@ -1,0 +1,96 @@
+databaseChangeLog:
+- preConditions:
+    - runningAs:
+        username:  sea_salt_user
+- changeSet:
+    id: A
+    author: otterdev
+    comment: Create users table
+    changes:
+    - createTable:
+        tableName: users
+        columns:
+            - column:
+                name: id
+                type: UUID
+                constraints:
+                    primaryKey: true
+                    nullable: false
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+
+            - column:
+                name: email
+                type: varchar(255)
+                constraints:
+                    nullable: false
+                    unique: true
+
+            - column:
+                name: password
+                type: varchar(255)
+                constraints:
+                    nullable: false
+            - column:
+                name: username
+                type: varchar(50)
+                constraints:
+                    nullable: false
+                    unique: true
+
+            - column:
+                name: first_name
+                type: varchar(50)
+                constraints:
+                    nullable: false
+
+            - column:
+                name: last_name
+                type: varchar(50)
+                constraints:
+                    nullable: false
+
+            - column:
+                name: gender
+                type: UUID
+                constraints:
+                    nullable: true
+            - column:
+                name: dob
+                type: timestamp
+                constraints:
+                    nullable: true
+            - column:
+                name: role
+                type: UUID
+                constraints:
+                    nullable: true
+
+            - column:
+                name: created_at
+                type: timestamp
+                constraints:
+                    nullable: false
+
+            - column:
+                name: updated_at
+                type: timestamp
+                constraints:
+                    nullable: false
+            - addForeignKeyConstraint:
+                    baseTableName: users
+                    baseColumnNames: gender
+                    constraintName: fk_users_gender
+                    referencedTableName: genders
+                    referencedColumnNames: id
+                    onDelete: restrict
+                    onUpdate: cascade
+
+            - addForeignKeyConstraint:
+                baseTableName: users
+                baseColumnNames: role
+                constraintName: fk_users_role
+                referencedTableName: roles
+                referencedColumnNames: id
+                onDelete: restrict
+                onUpdate: cascade

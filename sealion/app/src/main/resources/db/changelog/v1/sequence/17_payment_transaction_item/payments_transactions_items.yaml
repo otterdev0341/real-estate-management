@@ -1,0 +1,101 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username: sea_salt_user
+  - changeSet:
+      id: A
+      author: otterdev
+      comment: Create payment_transaction_items table with constraints and foreign keys
+      changes:
+        - createTable:
+            tableName: payment_transaction_items
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+
+              - column:
+                  name: payment_transaction
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: expense
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: amount
+                  type: decimal(10,2)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: price
+                  type: decimal(10,2)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_by
+                  type: UUID
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            tableName: payment_transaction_items
+            indexName: idx_payment_transaction_items_payment_transaction
+            columns:
+              - column:
+                  name: payment_transaction
+
+        - createIndex:
+            tableName: payment_transaction_items
+            indexName: idx_payment_transaction_items_created_by
+            columns:
+              - column:
+                  name: created_by
+
+        - addForeignKeyConstraint:
+            baseTableName: payment_transaction_items
+            baseColumnNames: payment_transaction
+            constraintName: fk_payment_transaction_items_payment_transaction
+            referencedTableName: payment_transactions
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade
+
+        - addForeignKeyConstraint:
+            baseTableName: payment_transaction_items
+            baseColumnNames: expense
+            constraintName: fk_payment_transaction_items_expense
+            referencedTableName: expenses
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade
+
+        - addForeignKeyConstraint:
+            baseTableName: payment_transaction_items
+            baseColumnNames: created_by
+            constraintName: fk_payment_transaction_items_created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: restrict
+            onUpdate: cascade

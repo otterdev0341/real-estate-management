@@ -1,0 +1,59 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username: sea_salt_user
+
+  - changeSet:
+      id: A
+      author: otterdev
+      labels: example-label
+      context: example-context
+      comment: Create genders table and insert default values
+      changes:
+        - createTable:
+            tableName: genders
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+              - column:
+                  name: detail
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+        - insert:
+            tableName: genders
+            columns:
+              - column:
+                  name: id
+                  valueComputed: "gen_random_uuid()"
+              - column:
+                  name: detail
+                  value: "male"
+
+        - insert:
+            tableName: genders
+            columns:
+              - column:
+                  name: id
+                  valueComputed: "gen_random_uuid()"
+              - column:
+                  name: detail
+                  value: "female"
+
+        - insert:
+            tableName: genders
+            columns:
+              - column:
+                  name: id
+                  valueComputed: "gen_random_uuid()"
+              - column:
+                  name: detail
+                  value: "other"
