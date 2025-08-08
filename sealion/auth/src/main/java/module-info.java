@@ -20,5 +20,9 @@ module auth {
     requires quarkus.core;
     requires org.hibernate.orm.core;
 
+    requires org.junit.jupiter.api;
+    opens auth.controller to org.junit.platform.commons, io.quarkus.junit5;
+
+
 
 }
