@@ -1,11 +1,13 @@
 databaseChangeLog:
-  - preConditions:
-      - runningAs:
-          username: sea_salt_user
   - changeSet:
       id: A
       author: otterdev
       comment: Create contacts table with constraints, indexes, and foreign keys
+      preconditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: contacts
       changes:
         - createTable:
             tableName: contacts

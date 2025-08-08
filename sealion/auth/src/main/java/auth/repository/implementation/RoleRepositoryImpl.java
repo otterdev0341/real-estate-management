@@ -22,5 +22,15 @@ public class RoleRepositoryImpl implements InternalRoleRepository, PanacheReposi
             return Either.left(new RepositoryError.NotFound("Failed to find user role"));
         }
     }
-    
+
+    @Override
+    public Either<RepositoryError, Role> createRole(Role role) {
+        try {
+            persist(role);
+            return Either.right(role);
+        } catch (Exception e) {
+            return Either.left(new RepositoryError.NotFound("Failed to create user role"));
+        }
+    }
+
 }

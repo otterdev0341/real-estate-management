@@ -12,7 +12,6 @@
         <module>app</module>
         <module>common</module>
         <module>auth</module>
-        <module>user</module>
         <module>contact</module>
         <module>expense</module>
     </modules>
@@ -37,6 +36,13 @@
                 <groupId>${quarkus.platform.group-id}</groupId>
                 <artifactId>${quarkus.platform.artifact-id}</artifactId>
                 <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>5.10.2</version> <!-- or latest compatible -->
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -153,19 +159,18 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.9.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-jdbc-h2</artifactId>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId> <!-- Example for PostgreSQL -->
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -173,6 +178,7 @@
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>io.smallrye</groupId>
                 <artifactId>jandex-maven-plugin</artifactId>
@@ -223,16 +229,22 @@
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-<!--                <version>${surefire-plugin.version}</version>-->
-                <version>3.5.3</version>
+                <version>${surefire-plugin.version}</version>
                 <configuration>
-                    <forkCount>1</forkCount>
-                    <reuseForks>true</reuseForks>
-<!--                    <argLine>-Xmx8g</argLine>-->
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>
                     </systemPropertyVariables>
+                    <includes>
+                        <!-- Run the DatabaseConnectionTest class first -->
+                        <include>**/DatabaseConnectionTest.java</include>
+                        <!-- Then run the rest of your integration tests -->
+                        <include>**/*Test.java</include>
+                    </includes>
+                    <!-- Exclude DatabaseConnectionTest from the second include to prevent it from running twice -->
+                    <excludes>
+                        <exclude>**/DatabaseConnectionTest.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <plugin>

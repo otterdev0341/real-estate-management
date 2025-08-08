@@ -1,14 +1,15 @@
 databaseChangeLog:
-  - preConditions:
-      - runningAs:
-          username: sea_salt_user
-
   - changeSet:
       id: A
       author: otterdev
       labels: example-label
       context: example-context
       comment: Create roles table and insert default values
+      preconditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: file_details
       changes:
         - createTable:
             tableName: roles

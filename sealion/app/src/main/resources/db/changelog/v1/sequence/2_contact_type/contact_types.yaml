@@ -1,11 +1,13 @@
 databaseChangeLog:
-  - preConditions:
-      - runningAs:
-          username: sea_salt_user
   - changeSet:
       id: A
       author: otterdev
       comment: Create contact_types table with unique constraint and index
+      preconditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: contact_types
       changes:
         - createTable:
             tableName: contact_types

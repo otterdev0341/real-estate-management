@@ -1,11 +1,13 @@
 databaseChangeLog:
-  - preConditions:
-      - runningAs:
-          username: sea_salt_user
   - changeSet:
       id: A
       author: otterdev
       comment: Create sale_transactions table with constraints and foreign keys
+      preconditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: sale_transactions
       changes:
         - createTable:
             tableName: sale_transactions

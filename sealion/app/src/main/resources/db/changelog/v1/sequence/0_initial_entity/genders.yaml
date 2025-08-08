@@ -1,14 +1,15 @@
 databaseChangeLog:
-  - preConditions:
-      - runningAs:
-          username: sea_salt_user
-
   - changeSet:
       id: A
       author: otterdev
       labels: example-label
       context: example-context
       comment: Create genders table and insert default values
+      preconditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: genders
       changes:
         - createTable:
             tableName: genders

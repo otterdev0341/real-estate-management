@@ -1,11 +1,13 @@
 databaseChangeLog:
-  - preConditions:
-      - runningAs:
-          username: sea_salt_user
   - changeSet:
       id: A
       author: otterdev
       comment: Create property_types table with constraints and foreign key to users
+      preconditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: property_types
       changes:
         - createTable:
             tableName: property_types
@@ -18,7 +20,7 @@ databaseChangeLog:
                     nullable: false
                     onDelete: RESTRICT
                     onUpdate: CASCADE
-                    
+
 
               - column:
                   name: detail

@@ -11,4 +11,6 @@ public interface InternalRoleRepository {
     
     Either<RepositoryError, Optional<Role>> findUserRole();
 
+    Either<RepositoryError, Role> createRole(Role role);
+
 }

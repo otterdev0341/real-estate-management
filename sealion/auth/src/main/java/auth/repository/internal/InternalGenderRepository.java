@@ -9,5 +9,6 @@ import java.util.Optional;
 public interface InternalGenderRepository {
     
     Either<RepositoryError, Optional<Gender>> findByDetail(String detail);
-    
+
+    Either<RepositoryError, Gender> createGender(Gender gender);
 }

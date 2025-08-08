@@ -19,8 +19,6 @@
 
 
 
-
-
     <dependencies>
         <dependency>
             <groupId>org.otter</groupId>
@@ -29,7 +27,14 @@
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.otter</groupId>
+            <artifactId>app</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

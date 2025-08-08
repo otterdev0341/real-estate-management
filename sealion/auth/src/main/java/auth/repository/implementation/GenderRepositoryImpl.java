@@ -29,6 +29,15 @@ public class GenderRepositoryImpl implements InternalGenderRepository, PanacheRe
         
     }
 
-    
-    
+    @Override
+    public Either<RepositoryError, Gender> createGender(Gender gender) {
+        try {
+            persist(gender);
+            return Either.right(gender);
+        } catch (Exception e) {
+            return Either.left(new RepositoryError.NotFound("Failed to create gender"));
+        }
+    }
+
+
 }

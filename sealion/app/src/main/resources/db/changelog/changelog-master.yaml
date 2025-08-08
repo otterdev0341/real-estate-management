@@ -1,4 +1,5 @@
 databaseChangeLog:
+
   - include:
       file: db/changelog/v1/sequence/0_initial_entity/genders.yaml
   - include:
@@ -14,7 +15,7 @@ databaseChangeLog:
   - include:
       file: db/changelog/v1/sequence/3_contact/contacts.yaml
   - include:
-      file: db/changelog/v1/sequence/4_file_detail/files_detatails.yaml
+      file: db/changelog/v1/sequence/4_file_detail/files_details.yaml
   - include:
       file: db/changelog/v1/sequence/5_project_status/projects_statues.yaml
   - include:
