@@ -4,9 +4,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 import common.service.implementation.JwtService;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 
+@ApplicationScoped
 public abstract class BaseController {
     
     @Inject

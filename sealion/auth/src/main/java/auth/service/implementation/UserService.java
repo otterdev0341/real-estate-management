@@ -210,22 +210,38 @@ class UserService implements InternalUserService, DeclareUserService {
     public Either<ServiceError, User> validateNewUser(ReqCreateUserDto userDto) {
         // check is username exist
         Either<RepositoryError, Boolean> isUsernameExist = userRepository.existsByUsername(userDto.getUsername().trim());
-        if (isUsernameExist.isLeft() || isUsernameExist.getRight() == true) {
+        // handle error
+        if (isUsernameExist.isLeft()) {
             return Either.left(new ServiceError.DuplicateEntry("Validation Error occurred in service " + isUsernameExist.getLeft().message()));
+        }
+        // handle duplicate
+        if (isUsernameExist.getRight()) {
+            return Either.left(new ServiceError.DuplicateEntry("Username already exist"));
         }
 
         // check is email exist
         Either<RepositoryError, Boolean> isEmailExist = userRepository.existsByEmail(userDto.getEmail().trim());
+        // handle error
         if (isEmailExist.isLeft()) {
-            return Either.left(new ServiceError.DuplicateEntry("Unexpected Error occurred email already exist"));
+            return Either.left(new ServiceError.DuplicateEntry("Faliure occurred while checking email existence:"));
+        }
+        // handle duplicate
+        if (isEmailExist.getRight()) {
+            return Either.left(new ServiceError.DuplicateEntry("Email already exist"));
         }
         // hash password
-        String hashedPassword = BCrypt.hashpw(userDto.getPassword(), BCrypt.gensalt());
+        String hashedPassword = BCrypt.hashpw(userDto.getPassword(), BCrypt.gensalt(12));
         // get gender object
         Either<RepositoryError, Optional<Gender>> gender = genderRepository.findByDetail(userDto.getGender());
-        if (gender.isLeft() || gender.getRight().isEmpty()) {
+        // handle error
+        if (gender.isLeft()) {
             return Either.left(new ServiceError.OperationFailed("Unexpected Error occurred while fetching gender detail: " + userDto.getGender()));
         }
+        // handle not found
+        if (gender.getRight().isEmpty()) {
+            return Either.left(new ServiceError.NotFound("Gender not found: " + userDto.getGender()));
+        }
+
         // get user role object
         Either<RepositoryError, Optional<Role>> role = roleRepository.findUserRole();
         if (role.isLeft() || role.getRight().isEmpty()) {

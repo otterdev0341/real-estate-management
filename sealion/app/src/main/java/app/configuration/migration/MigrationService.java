@@ -27,7 +27,7 @@ public class MigrationService {
                 // Drop all objects from the default schema.
                 // Note: The dropAll command is available in the open-source Liquibase API,
                 // even if the change type is part of Liquibase Pro.
-                liquibase.dropAll();
+//                liquibase.dropAll();
 
                 // Migrate the database with the main changelog.
                 liquibase.update(liquibaseFactory.createContexts(), liquibaseFactory.createLabels());

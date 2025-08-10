@@ -10,6 +10,7 @@ import common.domain.entity.Role;
 import common.domain.entity.User;
 import common.errorStructure.RepositoryError;
 import gender.controller.GenderInitializer;
+import io.qameta.allure.*;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -91,8 +92,15 @@ public class AuthControllerTest {
         }
     }
 
+
+   
     @Test
     @Order(1)
+    @Step("Sign In Test")
+    @Epic("Auth Test")
+    @Feature("Sign In")
+    @Story("Sign In Test")
+    @Description("Login with username and password")
     void signInTest() {
         System.out.println("Running signInTest...");
         JsonObject payload = Json.createObjectBuilder()
@@ -110,6 +118,11 @@ public class AuthControllerTest {
     }
 
     @Test
+    @Step("Sign In Test")
+    @Epic("Auth Test")
+    @Feature("Sign In")
+    @Story("Sign In Test")
+    @Description("Login with username and password")
     @Order(2)
     void signInTestKo() {
         System.out.println("Running signInTest...");

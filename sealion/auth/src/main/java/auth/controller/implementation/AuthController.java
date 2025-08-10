@@ -2,7 +2,6 @@ package auth.controller.implementation;
 
 
 import java.util.UUID;
-
 import auth.domain.dto.TestDto;
 import common.controller.base.BaseController;
 import auth.controller.internal.InternalAuthController;
@@ -11,8 +10,8 @@ import common.domain.dto.auth.ReqLoginDto;
 import common.domain.dto.auth.ResTokenDto;
 import common.domain.dto.user.ResEntryUserDto;
 import common.domain.mapper.UserMapper;
+import common.response.ErrorResponse;
 import common.response.SuccessResponse;
-import io.quarkus.logging.Log;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -68,11 +67,23 @@ public class AuthController extends BaseController implements InternalAuthContro
 
         return authService.login(reqLoginDto)
                 .fold(
-                    error -> Response.status(Response.Status.UNAUTHORIZED)
-                        .entity(error.message())
-                        .build(),
-                    success -> Response.ok(new SuccessResponse<ResTokenDto>("login success", success)).build()
-                );
+                    error -> {
+                        ErrorResponse errorResponse = new ErrorResponse(
+                                "Login Failed reason by ",
+                            error.message(),
+                            Response.Status.UNAUTHORIZED
+                        );
+                        return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity(errorResponse)
+                        .build();
+                    },
+                    success -> {
+                        SuccessResponse<ResTokenDto> successResponse = new SuccessResponse<>(
+                                "Login Successfully",
+                            success
+                        );
+                        return Response.ok(successResponse).status(Response.Status.OK).build();
+                    });
     }
 
 

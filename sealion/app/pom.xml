@@ -19,25 +19,51 @@
     </properties>
 
     <dependencies>
-
+        <dependency>
+            <groupId>org.otter</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.otter</groupId>
+            <artifactId>auth</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.otter</groupId>
+            <artifactId>contact</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.otter</groupId>
+            <artifactId>expense</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.otter</groupId>
+            <artifactId>fileDetail</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
-    <!--    <build>-->
-<!--        <plugins>-->
-<!--            <plugin>-->
-<!--                <groupId>org.liquibase</groupId>-->
-<!--                <artifactId>liquibase-maven-plugin</artifactId>-->
-<!--                <version>4.31.1</version>-->
-<!--                <configuration>-->
-<!--                    <changeLogFile>src/main/resources/db/changelog/changelog-master.yaml</changeLogFile>-->
-<!--                    <url>jdbc:postgresql://localhost:7777/practice</url>-->
-<!--                    <username>sea_salt_user</username>-->
-<!--                    <password>sea_salt_password</password>-->
-<!--                    <driver>org.postgresql.Driver</driver>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.smallrye</groupId>
+                <artifactId>jandex-maven-plugin</artifactId>
+                <version>3.3.2</version>
+                <executions>
+                    <execution>
+                        <id>make-index</id>
+                        <goals>
+                            <goal>jandex</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
-<!--        </plugins>-->
-<!--    </build>-->
+
 
 </project>

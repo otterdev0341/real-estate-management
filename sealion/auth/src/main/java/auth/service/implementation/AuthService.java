@@ -46,9 +46,10 @@ public class AuthService implements InternalAuthService {
             return Either.left(new ServiceError.NotFound("User not found with email: " + loginDto.getEmail()));
         }
         User theUser = userEither.getRight().get();
+
         // check if login password matches userEmail
         if(!BCrypt.checkpw(loginDto.getPassword(), theUser.getPassword())) {
-            return Either.left(new ServiceError.ValidationFailed("Invalid password for user: " + loginDto.getEmail()));
+            return Either.left(new ServiceError.ValidationFailed("Invalid credentials"));
         }
         
         // if correct generate jwt token
