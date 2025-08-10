@@ -70,15 +70,11 @@ public class AuthService implements InternalAuthService {
 
     @Override
     public Either<ServiceError, User> resMe(UUID userId) {
-        Either<ServiceError, Optional<User>> userEither = userService.findUserById(userId);
+        Either<ServiceError, User> userEither = userService.findUserById(userId);
         if (userEither.isLeft()) {
             return Either.left(userEither.getLeft());
         }
-        if (userEither.getRight().isEmpty()) {
-            return Either.left(new ServiceError.NotFound("User not found with ID: " + userId));
-        }
-        User theUser = userEither.getRight().get();
-        
+        User theUser = userEither.getRight();
         return Either.right(theUser);
     }
     

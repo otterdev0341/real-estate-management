@@ -16,5 +16,5 @@ public interface DeclareUserService {
     
     Either<ServiceError, Optional<User>> findByEmail(String email);
 
-    Either<ServiceError, Optional<User>> findUserById(UUID userId);
+    Either<ServiceError, User> findUserById(UUID userId);
 }

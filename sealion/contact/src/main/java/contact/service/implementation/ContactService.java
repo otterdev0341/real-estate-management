@@ -174,16 +174,14 @@ public class ContactService implements InternalContactService, DeclareContactSer
 
     private Either<ServiceError, Contact> validateNewContact(UUID userId, ReqCreateContactDto reqCreateContactDto) {
         // section 1 : retrieved user object
-        Either<ServiceError, Optional<User>> targetUser = userService.findUserById(userId);
+        Either<ServiceError, User> targetUser = userService.findUserById(userId);
         // handleFetch error
         if (targetUser.isLeft()) {
             return Either.left(new ServiceError.OperationFailed("Failed to fetch user reason by :" + targetUser.getLeft().message()));
         }
         // handle user not found
-        if (targetUser.getRight().isEmpty()){
-            return Either.left(new ServiceError.NotFound("User not found with id : " + userId.toString() + " under create new contact operation"));
-        }
-        User user = targetUser.getRight().get();
+
+        User user = targetUser.getRight();
 
         // section 2 : check is business exist with the user
         Either<RepositoryError, Boolean> businessNameCheck = contactRepository.isExistByBusinessNameAndUserId(reqCreateContactDto.getBusinessName().trim(), userId);

@@ -18,7 +18,7 @@ public interface InternalUserRepository {
 
     Either<RepositoryError, Optional<User>> findByEmail(String email);
 
-    Either<RepositoryError, Optional<User>> findUserById(UUID userId);
+    Either<RepositoryError, User> findUserById(UUID userId);
 
     // create new user
     Either<RepositoryError, User> createUser(User user);

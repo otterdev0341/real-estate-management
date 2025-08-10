@@ -66,18 +66,13 @@ public class ContactTypeService implements InternalContactTypeService, DeclareCo
         return userService.findUserById(userId)
                 .flatMapLeft(Either::left) // ถ้า error ให้ส่งต่อเลย
                 .flatMapRight(optUser -> {
-                    if (optUser.isEmpty()) {
-                        return Either.left(new ServiceError.NotFound("User not found with id : " + userId));
-                    }
-
-                    User user = optUser.get();
 
                     return contactTypeRepository.isExistByDetailAndUserId(
                                     reqCreateContactTypeDto.getDetail().trim(),
                                     userId
                             )
                             // ผูก user กับ isExist เข้า Pair เดียวกัน
-                            .mapRight(isExist -> Pair.of(user, isExist))
+                            .mapRight(isExist -> Pair.of(optUser, isExist))
                             .mapLeft(repoErr -> new ServiceError.ValidationFailed(repoErr.message()));
                 })
                 .flatMapRight(pair -> {
@@ -89,10 +84,10 @@ public class ContactTypeService implements InternalContactTypeService, DeclareCo
                                 "Contact type already exists for this user"
                         ));
                     }
-                    if (user == null) {
-                        // without this check it will error
-                        return Either.left(new ServiceError.OperationFailed("created contact user still be null"));
-                    }
+//                    if (user == null) {
+//                        // without this check it will error
+//                        return Either.left(new ServiceError.OperationFailed("created contact user still be null"));
+//                    }
 
                     ContactType newContactType = ContactType.builder()
                             .detail(reqCreateContactTypeDto.getDetail())
@@ -105,52 +100,6 @@ public class ContactTypeService implements InternalContactTypeService, DeclareCo
                                     "Can't persist new contact type: " + err.message()
                             ));
                 });
-
-        /*
-        // get user object
-        Either<ServiceError, Optional<User>> targetUser = userService.findUserById(userId);
-        // error fetch user
-        if (targetUser.isLeft()) {
-            ServiceError theError = new ServiceError
-                    .ValidationFailed("User not found with id : " + userId.toString() + " under create new contact type operation." + " cause by " + targetUser.getLeft().message());
-            return Either.left(theError);
-        }
-        // error user not found
-        if (targetUser.getRight().isEmpty()) {
-            ServiceError theError = new ServiceError.NotFound("User not found with id : " + userId.toString() + " under create new contact type operation");
-            return Either.left(theError);
-
-        }
-        User theUser = targetUser.getRight().get();
-        // check is the detail is not exist with this user
-        Either<RepositoryError, Boolean> isContactTypeExist = contactTypeRepository.isExistByDetailAndUserId(reqCreateContactTypeDto.getDetail().trim(), userId);
-        // handle fetch error
-        if (isContactTypeExist.isLeft()) {
-            ServiceError theError = new ServiceError.ValidationFailed("Failed to check contact type detail, is exist before insert" + isContactTypeExist.getLeft().message());
-            return Either.left(theError);
-        }
-        // handle duplicate
-        if (isContactTypeExist.getRight()) {
-            ServiceError theError = new ServiceError.DuplicateEntry("The contact type detail already exist with this user by value of :" + reqCreateContactTypeDto.getDetail().trim());
-            return Either.left(theError);
-        }
-        // create new and persist
-        ContactType newContactType = ContactType.builder()
-                .detail(reqCreateContactTypeDto.getDetail())
-                .createdBy(theUser)
-                .build();
-        return contactTypeRepository.createContactType(newContactType)
-                .fold(
-                        error -> {
-                            ServiceError theError = new ServiceError.OperationFailed("Can't persist new contact type reason by" + error.message());
-                            return Either.left(theError);
-                        },
-                        success -> {
-                            ResEntryContactTypeDto resEntryContactTypeDto = contactTypeMapper.toDto(success);
-                            return Either.right(resEntryContactTypeDto);
-                        }
-                );
-    */
 
     }
 

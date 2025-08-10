@@ -47,7 +47,7 @@ class UserService implements InternalUserService, DeclareUserService {
                     error -> {
                         return Either.left(new ServiceError.OperationFailed("Unexpected Error occurred: " + userId));
                     }, 
-                    success -> success.isPresent() ? Either.right(true) : Either.right(false)
+                    success -> Either.right(true)
                 );
     }
 
@@ -61,7 +61,7 @@ class UserService implements InternalUserService, DeclareUserService {
     }
 
     @Override
-    public Either<ServiceError, Optional<User>> findUserById(UUID userId) {
+    public Either<ServiceError, User> findUserById(UUID userId) {
         return userRepository.findUserById(userId)
                 .fold(
                     error -> Either.left(new ServiceError.OperationFailed("Unexpected Error occurred (user Service): " + userId)),
@@ -106,8 +106,8 @@ class UserService implements InternalUserService, DeclareUserService {
     @Override
     public Either<ServiceError, User> changeEmail(ReqChangeEmailDto changeEmailDto, UUID userId) {
         // check is userId exist
-        Either<RepositoryError, Optional<User>> user = userRepository.findUserById(userId);
-        if (user.isLeft() || user.getRight().isEmpty()) {
+        Either<RepositoryError, User> user = userRepository.findUserById(userId);
+        if (user.isLeft()) {
             return Either.left(new ServiceError.NotFound("User not found: " + userId));
         }
 
@@ -119,15 +119,15 @@ class UserService implements InternalUserService, DeclareUserService {
         if (isEmailExist.getRight() == true) {
             return Either.left(new ServiceError.DuplicateEntry("Email already exists: " + changeEmailDto.getNewEmail()));
         }
-        if (user.getRight().get().getEmail().equals(changeEmailDto.getNewEmail().trim())) {
+        if (user.getRight().getEmail().equals(changeEmailDto.getNewEmail().trim())) {
             return Either.left(new ServiceError.DuplicateEntry("New email is same as current email: " + changeEmailDto.getNewEmail()));
         }
         // check is password in dto match with user password
-        if (!BCrypt.checkpw(changeEmailDto.getPassword(), user.getRight().get().getPassword())) {
+        if (!BCrypt.checkpw(changeEmailDto.getPassword(), user.getRight().getPassword())) {
             return Either.left(new ServiceError.ValidationFailed("Invalid password provided for user: " + userId));
         }
         // update user email
-        User userToUpdate = user.getRight().get();
+        User userToUpdate = user.getRight();
         userToUpdate.setEmail(changeEmailDto.getNewEmail().trim());
         
         // persist update only email field
@@ -141,12 +141,12 @@ class UserService implements InternalUserService, DeclareUserService {
     @Override
     public Either<ServiceError, User> changePassword(ReqChangePasswordDto changePasswordDto, UUID userId) {
         // check is userId exist
-        Either<RepositoryError, Optional<User>> user = userRepository.findUserById(userId);
-        if (user.isLeft() || user.getRight().isEmpty()) {
+        Either<RepositoryError, User> user = userRepository.findUserById(userId);
+        if (user.isLeft()) {
             return Either.left(new ServiceError.NotFound("User not found: " + userId));
         }
         // check is old password match with user password
-        if (!BCrypt.checkpw(changePasswordDto.getOldPassword(), user.getRight().get().getPassword())) {
+        if (!BCrypt.checkpw(changePasswordDto.getOldPassword(), user.getRight().getPassword())) {
             return Either.left(new ServiceError.ValidationFailed("Invalid old password provided for user: " + userId));
         }
         // check is new password and verify new password match
@@ -156,7 +156,7 @@ class UserService implements InternalUserService, DeclareUserService {
         // hash new password
         String hashedNewPassword = BCrypt.hashpw(changePasswordDto.getNewPassword(), BCrypt.gensalt());
         // update password field
-        User userToUpdate = user.getRight().get();
+        User userToUpdate = user.getRight();
         userToUpdate.setPassword(hashedNewPassword);
         // perform update
         return userRepository.updateUser(userToUpdate)
@@ -169,11 +169,11 @@ class UserService implements InternalUserService, DeclareUserService {
     @Override
     public Either<ServiceError, User> changeUserInfo(ReqChangeUserInfoDto changeUserInfoDto, UUID userId) {
         // check is user exist,
-        Either<RepositoryError, Optional<User>> user = userRepository.findUserById(userId);
-        if (user.isLeft() || user.getRight().isEmpty()) {
+        Either<RepositoryError, User> user = userRepository.findUserById(userId);
+        if (user.isLeft()) {
             return Either.left(new ServiceError.NotFound("User not found: " + userId));
         }
-        User userToUpdate = user.getRight().get();
+        User userToUpdate = user.getRight();
         // check is gender exist
         Either<RepositoryError, Optional<Gender>> gender = genderRepository.findByDetail(changeUserInfoDto.getGender());
         if (gender.isLeft() || gender.getRight().isEmpty()) {
@@ -195,8 +195,8 @@ class UserService implements InternalUserService, DeclareUserService {
     @Override
     public Either<ServiceError, Boolean> deleteUserById(UUID userId) {
         // check is user exist
-        Either<RepositoryError, Optional<User>> user = userRepository.findUserById(userId);
-        if (user.isLeft() || user.getRight().isEmpty()) {
+        Either<RepositoryError, User> user = userRepository.findUserById(userId);
+        if (user.isLeft()) {
             return Either.left(new ServiceError.NotFound("User not found: " + userId));
         }
         return userRepository.deleteUserById(userId)

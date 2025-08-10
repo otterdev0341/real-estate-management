@@ -55,12 +55,14 @@ public class UserRepositoryImpl implements PanacheRepositoryBase<User, UUID>, In
     }
 
     @Override
-    public Either<RepositoryError, Optional<User>> findUserById(UUID userId) {
+    public Either<RepositoryError, User> findUserById(UUID userId) {
         try {
             Optional<User> user = find("id", userId).firstResultOptional();
-            return Either.right(user);
+            return user
+                    .<Either<RepositoryError, User>>map(Either::right)
+                    .orElseGet(() -> Either.left(new RepositoryError.NotFound("Failed to find user by ID")));
         } catch (Exception e) {
-            return Either.left(new RepositoryError.NotFound("Failed to find user by ID"));
+            return Either.left(new RepositoryError.FetchFailed("Failed to find user by ID"));
         }
     }
 
