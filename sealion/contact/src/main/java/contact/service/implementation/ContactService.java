@@ -124,7 +124,7 @@ public class ContactService implements InternalContactService, DeclareContactSer
 
     @Override
     public Either<ServiceError, Boolean> deleteContact(UUID userId, UUID contactId) {
-        return contactRepository.deleteContact(userId, contactId)
+        return contactRepository.deleteContact(contactId, userId)
                 .fold(
                     error -> {
                         ServiceError theError = new ServiceError.OperationFailed("Failed to delete contact reason by" + error.message());

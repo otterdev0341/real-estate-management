@@ -151,7 +151,7 @@ public class ContactTypeController extends BaseController implements InternalCon
     @Path("/{contactTypeId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Override
-    public Response findContactTypeById(@PathParam("contactTypeId") UUID contactTypeId){
+    public Response findContactTypeById(@RequestBody(required = false) @PathParam("contactTypeId") UUID contactTypeId){
         UUID userId = getCurrentUserIdOrThrow();
         return contactTypeService.findTheContactTypeByIdAndUserId(contactTypeId, userId)
                 .fold(

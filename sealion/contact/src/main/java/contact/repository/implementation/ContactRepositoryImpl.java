@@ -125,14 +125,16 @@ public class ContactRepositoryImpl implements PanacheRepositoryBase<Contact, UUI
                 stream = stream.sorted(comparator);
             }
 
+            int page = query.getPage() != null ? query.getPage() : 0;
+            int size = query.getSize() != null ? query.getSize() : 10;
             // Pagination logic
-            int skip = query.getPage() * query.getSize();
+            int skip = page * size;
             if (skip < 0) {
                 skip = 0; // Ensure skip is not negative
             }
 
             // Fetch the results
-            List<Contact> contacts = stream.skip(skip).limit(query.getSize()).toList();
+            List<Contact> contacts = stream.skip(skip).limit(size).toList();
             return Either.right(contacts);
         } catch (Exception e) {
             return Either.left(new RepositoryError.FetchFailed("Error fetching contacts by user ID: " + e.getMessage()));

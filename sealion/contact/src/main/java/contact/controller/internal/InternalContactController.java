@@ -16,11 +16,11 @@ public interface InternalContactController {
 
     Response createContact(@Valid ReqCreateContactDto contactDto);
 
-    Response updateContact(@Valid ReqUpdateContactDto contactDto, @ValidUUID UUID contactId);
+    Response updateContact(@Valid ReqUpdateContactDto contactDto, UUID contactId);
 
-    Response deleteContact(@ValidUUID UUID contactId);
+    Response deleteContact(UUID contactId);
 
-    Response findContactById(@ValidUUID UUID contactId);
+    Response findContactById(UUID contactId);
 
     Response findAllContacts(
             @QueryParam("page") Integer page,

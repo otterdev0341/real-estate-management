@@ -20,11 +20,25 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
+import org.eclipse.microprofile.openapi.annotations.security.SecuritySchemes;
 
 import java.util.UUID;
 
-
+@SecuritySchemes(value = {
+        @SecurityScheme(
+                securitySchemeName = "jwt",
+                type = SecuritySchemeType.HTTP,
+                scheme = "bearer",
+                bearerFormat = "JWT"
+        )
+})
+@SecurityRequirement(name = "jwt")
+@Path("/contact")
 @ApplicationScoped
 public class ContactController extends BaseController implements InternalContactController {
 
@@ -80,7 +94,7 @@ public class ContactController extends BaseController implements InternalContact
     @Override
     public Response updateContact(
             @Valid ReqUpdateContactDto contactDto,
-            @PathParam("contactId")  @ValidUUID UUID contactId
+            @PathParam("contactId") UUID contactId
     ) {
 
         UUID userID = getCurrentUserIdOrThrow();
@@ -115,7 +129,7 @@ public class ContactController extends BaseController implements InternalContact
     @Path("/{contactId}")
     @Transactional
     @Override
-    public Response deleteContact(@PathParam("contactId") @ValidUUID UUID contactId) {
+    public Response deleteContact(@PathParam("contactId") UUID contactId) {
         UUID userId = getCurrentUserIdOrThrow();
 
         return contactService.deleteContact(userId, contactId)
@@ -148,7 +162,7 @@ public class ContactController extends BaseController implements InternalContact
     @Path("/{contactId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Override
-    public Response findContactById(@PathParam("contactId") @ValidUUID UUID contactId) {
+    public Response findContactById( @RequestBody(required = false)  @PathParam("contactId") UUID contactId) {
         UUID userId = getCurrentUserIdOrThrow();
 
         return contactService.findTheContactByIdAndUserId(contactId, userId)
@@ -181,6 +195,7 @@ public class ContactController extends BaseController implements InternalContact
     @Produces(MediaType.APPLICATION_JSON)
     @Override
     public Response findAllContacts(
+            @RequestBody(required = false)
             @Parameter(description = "to use with pagination", example = "") @QueryParam("page") Integer page,
             @Parameter(description = "to use with pagination", example = "") @QueryParam("size") Integer size,
             @Parameter(description = "sort by createdAt, businessName, contactTypeDetail", example = "") @QueryParam("sortBy") String sortBy,
