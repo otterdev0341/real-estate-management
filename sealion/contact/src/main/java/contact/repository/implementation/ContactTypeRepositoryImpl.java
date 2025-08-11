@@ -6,9 +6,12 @@ import common.domain.dto.query.BaseQuery;
 import common.domain.entity.ContactType;
 import common.errorStructure.RepositoryError;
 import contact.domain.comparator.ContactTypeComparators;
+import contact.domain.dto.contactType.ReqUpdateContactTypeDto;
 import contact.repository.internal.InternalContactTypeRepository;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -56,18 +59,19 @@ public class ContactTypeRepositoryImpl implements PanacheRepositoryBase<ContactT
     @Override
     public Either<RepositoryError, ContactType> updateContactType(ContactType contactType) {
         try {
-            ContactType updatedContactType = getEntityManager().merge(contactType);
-            return Either.right(updatedContactType);
+
+            ContactType mergedContactType = getEntityManager().merge(contactType);
+            return Either.right(mergedContactType);
         } catch (Exception e) {
             return Either.left(new RepositoryError.PersistenceFailed("Failed to update contactType"));
         }
     }
 
     @Override
-    public Either<RepositoryError, Optional<ContactType>> findContactTypeAndUserId(UUID contactTypeId, UUID userId) {
+    public Either<RepositoryError, ContactType> findContactTypeAndUserId(UUID contactTypeId, UUID userId) {
         try {
             Optional<ContactType> contactType = find("id = ?1 and createdBy.id = ?2", contactTypeId, userId).firstResultOptional();
-            return Either.right(contactType);
+            return contactType.<Either<RepositoryError, ContactType>>map(Either::right).orElseGet(() -> Either.left(new RepositoryError.NotFound("ContactType not found")));
         } catch (Exception e) {
             return Either.left(new RepositoryError.PersistenceFailed("Failed to find contactType"));
         }
@@ -101,23 +105,26 @@ public class ContactTypeRepositoryImpl implements PanacheRepositoryBase<ContactT
                 stream = stream.sorted(comparator);
             }
 
+            int page = query.getPage() != null ? query.getPage() : 0;
+            int size = query.getSize() != null ? query.getSize() : 10;
+
             // Pagination logic
-            int skip = query.getPage() * query.getSize();
+            int skip = page * size;
             if (skip < 0) {
                 skip = 0; // Ensure skip is not negative
             }
-            if (query.getSize() <= 0) {
+            if (size <= 0) {
                 return Either.left(new RepositoryError.FetchFailed("Size must be greater than zero"));
             }
             List<ContactType> result = stream
                     .skip(skip)
-                    .limit(query.getSize())
+                    .limit(size)
                     .toList();
 
             return Either.right(result);
 
         } catch (Exception e) {
-            return Either.left(new RepositoryError.FetchFailed("Failed to find contactType"));
+            return Either.left(new RepositoryError.FetchFailed("Failed to find contactType" + e.getMessage()));
         }
     }
 

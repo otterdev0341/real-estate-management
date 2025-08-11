@@ -4,6 +4,7 @@ import auth.service.declare.DeclareUserService;
 import com.speedment.jpastreamer.application.JPAStreamer;
 import com.spencerwi.either.Either;
 import common.domain.dto.base.ResListBaseDto;
+import common.domain.dto.query.BaseQuery;
 import common.domain.entity.Contact;
 import common.domain.entity.ContactType;
 import common.domain.entity.User;
@@ -135,7 +136,7 @@ public class ContactService implements InternalContactService, DeclareContactSer
     }
 
     @Override
-    public Either<ServiceError, ResListBaseDto<ResEntryContactDto>> findAllContactsByUserId(UUID userId, ContactQuery query) {
+    public Either<ServiceError, ResListBaseDto<ResEntryContactDto>> findAllContactsByUserId(UUID userId, BaseQuery query) {
         return contactRepository.findAllContactWithUserId(userId, query)
                 .fold(
                   error -> {
@@ -194,16 +195,12 @@ public class ContactService implements InternalContactService, DeclareContactSer
             return Either.left(new ServiceError.DuplicateEntry("The business name already exist with this user, value as" + reqCreateContactDto.getBusinessName()));
         }
         // section 3 : check is contact type exist and belong to user
-        Either<ServiceError, Optional<ContactType>> isContactTypeExist = contactTypeService.findContactTypeByIdAndUserId(reqCreateContactDto.getContactType(), userId);
+        Either<ServiceError, ContactType> isContactTypeExist = contactTypeService.findContactTypeByIdAndUserId(reqCreateContactDto.getContactType(), userId);
         // handle check error
         if (isContactTypeExist.isLeft()) {
             return Either.left(isContactTypeExist.getLeft());
         }
-        // handle not found
-        if (isContactTypeExist.getRight().isEmpty()) {
-            return Either.left(new ServiceError.NotFound("Contact type not found with id:" + reqCreateContactDto.getContactType() + " then can't persist new contact"));
-        }
-        ContactType contactType = isContactTypeExist.getRight().get();
+        ContactType contactType = isContactTypeExist.getRight();
         // section 4 : prepare new contact
         Contact contact = Contact.builder()
                 .businessName(reqCreateContactDto.getBusinessName().trim())
@@ -252,16 +249,13 @@ public class ContactService implements InternalContactService, DeclareContactSer
         }
 
         // section 4 : check is contact type exist and belong to user
-        Either<ServiceError, Optional<ContactType>> isContactTypeExist = contactTypeService.findContactTypeByIdAndUserId(reqUpdateContactDto.getContactType(), userId);
+        Either<ServiceError, ContactType> isContactTypeExist = contactTypeService.findContactTypeByIdAndUserId(reqUpdateContactDto.getContactType(), userId);
         // handle fetch error
         if (isContactTypeExist.isLeft()) {
             return Either.left(isContactTypeExist.getLeft());
         }
-        // handle not found
-        if (isContactTypeExist.getRight().isEmpty()){
-            return Either.left(new ServiceError.NotFound("Contact type not found with id:" + reqUpdateContactDto.getContactType()));
-        }
-        ContactType contactType = isContactTypeExist.getRight().get();
+
+        ContactType contactType = isContactTypeExist.getRight();
 
         // section 5 : return entity to persist
         updatedContact.setBusinessName(reqUpdateContactDto.getBusinessName().trim());

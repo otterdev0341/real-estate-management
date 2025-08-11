@@ -1,6 +1,7 @@
 package contact.repository.internal;
 
 import com.spencerwi.either.Either;
+import common.domain.dto.query.BaseQuery;
 import common.domain.entity.Contact;
 import common.errorStructure.RepositoryError;
 import contact.domain.dto.query.ContactQuery;
@@ -23,6 +24,6 @@ public interface InternalContactRepository {
 
     Either<RepositoryError, Boolean> deleteContact(UUID contactId, UUID userId);
 
-    Either<RepositoryError, List<Contact>> findAllContactWithUserId(UUID userId, ContactQuery query);
+    Either<RepositoryError, List<Contact>> findAllContactWithUserId(UUID userId, BaseQuery query);
 
 }

@@ -17,6 +17,7 @@ import contact.service.declare.DeclareContactTypeService;
 import contact.service.internal.InternalContactTypeService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Optional;
@@ -49,7 +50,7 @@ public class ContactTypeService implements InternalContactTypeService, DeclareCo
     }
 
     @Override
-    public Either<ServiceError, Optional<ContactType>> findContactTypeByIdAndUserId(UUID contactTypeId, UUID userId) {
+    public Either<ServiceError, ContactType> findContactTypeByIdAndUserId(UUID contactTypeId, UUID userId) {
         return contactTypeRepository.findContactTypeAndUserId(contactTypeId, userId)
                 .fold(
                   error -> {
@@ -60,73 +61,105 @@ public class ContactTypeService implements InternalContactTypeService, DeclareCo
                 );
     }
 
+
     @Override
     public Either<ServiceError, ResEntryContactTypeDto> createNewContactType(UUID userId, ReqCreateContactTypeDto reqCreateContactTypeDto) {
 
-        return userService.findUserById(userId)
-                .flatMapLeft(Either::left) // ถ้า error ให้ส่งต่อเลย
-                .flatMapRight(optUser -> {
 
-                    return contactTypeRepository.isExistByDetailAndUserId(
-                                    reqCreateContactTypeDto.getDetail().trim(),
-                                    userId
-                            )
-                            // ผูก user กับ isExist เข้า Pair เดียวกัน
-                            .mapRight(isExist -> Pair.of(optUser, isExist))
-                            .mapLeft(repoErr -> new ServiceError.ValidationFailed(repoErr.message()));
+        return userService.findUserById(userId)
+                .flatMapLeft(Either::left)
+                .flatMapRight(user -> {  // <-- directly User, no Optional
+                    // now continue your logic, e.g. check if detail exists
+                    return contactTypeRepository.isExistByDetailAndUserId(reqCreateContactTypeDto.getDetail().trim(), userId)
+                            .mapRight(isExist -> Pair.of(user, isExist))
+                            .mapLeft(repoError -> new ServiceError.OperationFailed("Failed to check contact type detail: " + repoError.message()));
                 })
                 .flatMapRight(pair -> {
                     User user = pair.getLeft();
                     Boolean isExist = pair.getRight();
-
                     if (isExist) {
-                        return Either.left(new ServiceError.DuplicateEntry(
-                                "Contact type already exists for this user"
-                        ));
+                        return Either.left(new ServiceError.DuplicateEntry("Contact type already exists for this user"));
                     }
-//                    if (user == null) {
-//                        // without this check it will error
-//                        return Either.left(new ServiceError.OperationFailed("created contact user still be null"));
-//                    }
 
-                    ContactType newContactType = ContactType.builder()
-                            .detail(reqCreateContactTypeDto.getDetail())
+                    ContactType contactType = ContactType.builder()
+                            .detail(reqCreateContactTypeDto.getDetail().trim())
                             .createdBy(user)
                             .build();
 
-                    return contactTypeRepository.createContactType(newContactType)
-                            .mapRight(contactTypeMapper::toDto)
-                            .mapLeft(err -> new ServiceError.OperationFailed(
-                                    "Can't persist new contact type: " + err.message()
-                            ));
+                    return contactTypeRepository.createContactType(contactType)
+                            .flatMapRight(success -> {
+                                ResEntryContactTypeDto contactTypeDto = contactTypeMapper.toDto(success);
+                                return Either.right(contactTypeDto);
+                            })
+                            .flatMapLeft(error -> {
+                                return Either.left(new ServiceError.PersistenceFailed("Failed to create new contact type: " + error.message()));
+                            });
                 });
+
+
+
+//        return userService.findUserById(userId)
+//                .flatMapLeft(Either::left) // ถ้า error ให้ส่งต่อเลย
+//                .flatMapRight(optUser -> {
+//
+//                    return contactTypeRepository.isExistByDetailAndUserId(
+//                                    reqCreateContactTypeDto.getDetail().trim(),
+//                                    userId
+//                            )
+//                            // ผูก user กับ isExist เข้า Pair เดียวกัน
+//                            .mapRight(isExist -> Pair.of(optUser, isExist))
+//                            .mapLeft(repoErr -> new ServiceError.ValidationFailed(repoErr.message()));
+//                })
+//                .flatMapRight(pair -> {
+//                    User user = pair.getLeft();
+//                    Boolean isExist = pair.getRight();
+//
+//                    if (isExist) {
+//                        return Either.left(new ServiceError.DuplicateEntry(
+//                                "Contact type already exists for this user"
+//                        ));
+//                    }
+////                    if (user == null) {
+////                        // without this check it will error
+////                        return Either.left(new ServiceError.OperationFailed("created contact user still be null"));
+////                    }
+//
+//                    ContactType newContactType = ContactType.builder()
+//                            .detail(reqCreateContactTypeDto.getDetail())
+//                            .createdBy(user)
+//                            .build();
+//
+//                    return contactTypeRepository.createContactType(newContactType)
+//                            .mapRight(contactTypeMapper::toDto)
+//                            .mapLeft(err -> new ServiceError.OperationFailed(
+//                                    "Can't persist new contact type: " + err.message()
+//                            ));
 
     }
 
     @Override
+    @Transactional
     public Either<ServiceError, ResEntryContactTypeDto> updateContactType(UUID userId, UUID contactTypeId, ReqUpdateContactTypeDto reqUpdateContactTypeDto) {
         // is contact type exist
-        Either<RepositoryError, Optional<ContactType>> isContactTypeExist = contactTypeRepository.findContactTypeAndUserId(contactTypeId, userId);
+        Either<RepositoryError, ContactType> isContactTypeExist = contactTypeRepository.findContactTypeAndUserId(contactTypeId, userId);
         if (isContactTypeExist.isLeft()) {
             ServiceError theError = new ServiceError.OperationFailed("Failed to fetch contact type reason by " + isContactTypeExist.getLeft().message());
             return Either.left(theError);
         }
-        if (isContactTypeExist.getRight().isEmpty()){
-            ServiceError theError = new ServiceError.NotFound("Contact type not found with id:" + contactTypeId);
-            return Either.left(theError);
-        }
-        ContactType theContactType = isContactTypeExist.getRight().get();
+
+        ContactType theContactType = isContactTypeExist.getRight();
         // is new contact type detail exist and not the same as founded
         Either<RepositoryError, Boolean> isNewNameExist = contactTypeRepository.isExistByDetailAndUserId(reqUpdateContactTypeDto.getDetail().trim(), userId);
         if (isNewNameExist.isLeft()) {
             ServiceError theError = new ServiceError.OperationFailed("Failed to check new contact type");
             return Either.left(theError);
         }
-        if (isNewNameExist.getRight() || theContactType.getDetail().equalsIgnoreCase(reqUpdateContactTypeDto.getDetail().trim())) {
+        if (isNewNameExist.getRight()) {
             ServiceError theError = new ServiceError.DuplicateEntry("The contact type detail already exist with this user, the new detail to update is exist");
             return Either.left(theError);
         }
         // persis update
+        theContactType.setDetail(reqUpdateContactTypeDto.getDetail());
         return contactTypeRepository.updateContactType(theContactType)
                 .fold(
                   error -> {
@@ -179,10 +212,7 @@ public class ContactTypeService implements InternalContactTypeService, DeclareCo
                       return Either.left(theError);
                   },
                   success -> {
-                      if (success.isEmpty()) {
-                          return Either.right(Optional.empty());
-                      }
-                      ResEntryContactTypeDto payload = contactTypeMapper.toDto(success.get());
+                      ResEntryContactTypeDto payload = contactTypeMapper.toDto(success);
                       return Either.right(Optional.of(payload));
                   }
                 );

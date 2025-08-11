@@ -14,18 +14,18 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BaseQuery {
-    @QueryParam("page")
+
     @Builder.Default
     private Integer page = 0;
 
-    @QueryParam("size")
+
     @Builder.Default
     private Integer size = 10;
 
-    @QueryParam("sortBy")
+
     private String sortBy;
 
-    @QueryParam("sortDirection")
+
     private String sortDirection;
 
 

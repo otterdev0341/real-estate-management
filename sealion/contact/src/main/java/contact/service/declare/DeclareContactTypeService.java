@@ -11,5 +11,5 @@ public interface DeclareContactTypeService {
     
     Either<ServiceError, Boolean> isContactTypeExistWithUserId(UUID contactTypeId, UUID userId);
 
-    Either<ServiceError, Optional<ContactType>> findContactTypeByIdAndUserId(UUID contactTypeId, UUID userId);
+    Either<ServiceError, ContactType> findContactTypeByIdAndUserId(UUID contactTypeId, UUID userId);
 }

@@ -4,6 +4,7 @@ import com.spencerwi.either.Either;
 import common.domain.dto.query.BaseQuery;
 import common.domain.entity.ContactType;
 import common.errorStructure.RepositoryError;
+import contact.domain.dto.contactType.ReqUpdateContactTypeDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +20,7 @@ public interface InternalContactTypeRepository {
 
     Either<RepositoryError, ContactType> updateContactType(ContactType contactType);
 
-    Either<RepositoryError, Optional<ContactType>> findContactTypeAndUserId(UUID contactTypeId, UUID userId);
+    Either<RepositoryError, ContactType> findContactTypeAndUserId(UUID contactTypeId, UUID userId);
 
     Either<RepositoryError, List<ContactType>> findAllContactTypeWithUserId(UUID userId, BaseQuery query);
 

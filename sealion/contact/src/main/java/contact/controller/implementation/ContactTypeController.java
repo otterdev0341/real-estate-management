@@ -3,7 +3,6 @@ package contact.controller.implementation;
 import common.controller.base.BaseController;
 import common.domain.dto.base.ResListBaseDto;
 import common.domain.dto.query.BaseQuery;
-import common.implementation.antonation.validator.ValidUUID;
 import common.response.ErrorResponse;
 import common.response.SuccessResponse;
 import contact.controller.internal.InternalContactTypeController;
@@ -15,11 +14,14 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 import org.eclipse.microprofile.openapi.annotations.security.SecuritySchemes;
@@ -49,9 +51,9 @@ public class ContactTypeController extends BaseController implements InternalCon
 
 
     @POST
+    @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Transactional
     @Operation(summary = "Create new contact type", description = "Create new contact type")
     @Override
     public Response createContactType(@Valid ReqCreateContactTypeDto contactTypeDto){
@@ -84,9 +86,8 @@ public class ContactTypeController extends BaseController implements InternalCon
     @Path("/{contactTypeId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Transactional
     @Override
-    public Response updateContactType(@Valid ReqUpdateContactTypeDto contactTypeDto, @PathParam("contactTypeId") @ValidUUID UUID contactTypeId)
+    public Response updateContactType(@Valid ReqUpdateContactTypeDto contactTypeDto, @PathParam("contactTypeId") UUID contactTypeId)
     {
         UUID userId = getCurrentUserIdOrThrow();
 
@@ -116,9 +117,11 @@ public class ContactTypeController extends BaseController implements InternalCon
 
     @DELETE
     @Path("/{contactTypeId}")
-    @Transactional
     @Override
-    public Response deleteContactType(@PathParam("contactTypeId") @ValidUUID UUID contactTypeId)
+    public Response deleteContactType(
+            @RequestBody(required = false)
+            @PathParam("contactTypeId") UUID contactTypeId
+    )
     {
         UUID userId = getCurrentUserIdOrThrow();
         return contactTypeService.deleteContactType(userId, contactTypeId)
@@ -148,7 +151,7 @@ public class ContactTypeController extends BaseController implements InternalCon
     @Path("/{contactTypeId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Override
-    public Response findContactTypeById(@PathParam("contactTypeId") @ValidUUID UUID contactTypeId){
+    public Response findContactTypeById(@PathParam("contactTypeId") UUID contactTypeId){
         UUID userId = getCurrentUserIdOrThrow();
         return contactTypeService.findTheContactTypeByIdAndUserId(contactTypeId, userId)
                 .fold(
@@ -187,9 +190,19 @@ public class ContactTypeController extends BaseController implements InternalCon
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Override
-    public Response findAllContactTypes(BaseQuery query)
+    public Response findAllContactTypes(
+            @RequestBody(required = false)
+            @Parameter(description = "to use with pagination", example = "") @QueryParam("page") Integer page,
+            @Parameter(description = "to use with pagination", example = "") @QueryParam("size") Integer size,
+            @Parameter(description = "sort by createdAt, detail", example = "") @QueryParam("sortBy") String sortBy,
+            @Parameter(description = "ASC | DESC (default: DESC)", example = "") @QueryParam("sortDirection") String sortDirection
+    )
     {
         UUID userId = getCurrentUserIdOrThrow();
+        BaseQuery query = BaseQuery.builder()
+                .page(page).size(size)
+                .sortBy(sortBy).sortDirection(sortDirection)
+                .build();
         return contactTypeService.findAllContactTypesByUserId(userId, query)
                 .fold(
                         error -> {

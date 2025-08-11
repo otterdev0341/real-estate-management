@@ -2,10 +2,10 @@ package contact.repository.implementation;
 
 import com.speedment.jpastreamer.application.JPAStreamer;
 import com.spencerwi.either.Either;
+import common.domain.dto.query.BaseQuery;
 import common.domain.entity.Contact;
 import common.errorStructure.RepositoryError;
 import contact.domain.comparator.ContactComparators;
-import contact.domain.dto.query.ContactQuery;
 import contact.repository.internal.InternalContactRepository;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -62,6 +62,7 @@ public class ContactRepositoryImpl implements PanacheRepositoryBase<Contact, UUI
     public Either<RepositoryError, Contact> updateContact(Contact contact) {
         try {
             Contact mergedContact = getEntityManager().merge(contact);
+            getEntityManager().flush();
             return Either.right(mergedContact);
         } catch (Exception e) {
             return Either.left(new RepositoryError.PersistenceError("Error updating Contact: " + e.getMessage()));
@@ -94,7 +95,7 @@ public class ContactRepositoryImpl implements PanacheRepositoryBase<Contact, UUI
     }
 
     @Override
-    public Either<RepositoryError, List<Contact>> findAllContactWithUserId(UUID userId, ContactQuery query) {
+    public Either<RepositoryError, List<Contact>> findAllContactWithUserId(UUID userId, BaseQuery query) {
         try {
             // Stream all contacts for the user
             var stream = jpaStreamer.stream(Contact.class)
