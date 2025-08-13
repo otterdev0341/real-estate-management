@@ -21,5 +21,6 @@ public interface InternalContactTypeService {
 
     Either<ServiceError, ResListBaseDto<ResEntryContactTypeDto>> findAllContactTypesByUserId(UUID userId, BaseQuery query);
 
+    //
     Either<ServiceError, Optional<ResEntryContactTypeDto>> findTheContactTypeByIdAndUserId(UUID contactTypeId, UUID userId);
 }

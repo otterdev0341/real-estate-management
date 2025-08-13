@@ -4,12 +4,15 @@ import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+@Getter
 @MappedSuperclass
 public abstract class BaseTime {
 
+    // Getters if needed
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -26,12 +29,4 @@ public abstract class BaseTime {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Getters if needed
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
 }

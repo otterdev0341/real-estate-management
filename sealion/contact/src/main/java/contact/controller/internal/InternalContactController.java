@@ -1,10 +1,7 @@
 package contact.controller.internal;
 
-import common.domain.dto.query.BaseQuery;
-import common.implementation.antonation.validator.ValidUUID;
 import contact.domain.dto.contact.ReqCreateContactDto;
 import contact.domain.dto.contact.ReqUpdateContactDto;
-import contact.domain.dto.query.ContactQuery;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;

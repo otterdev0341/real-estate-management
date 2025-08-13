@@ -9,7 +9,6 @@ import common.errorStructure.ServiceError;
 import contact.domain.dto.contact.ReqCreateContactDto;
 import contact.domain.dto.contact.ReqUpdateContactDto;
 import contact.domain.dto.contact.ResEntryContactDto;
-import contact.domain.dto.query.ContactQuery;
 
 public interface InternalContactService {
 

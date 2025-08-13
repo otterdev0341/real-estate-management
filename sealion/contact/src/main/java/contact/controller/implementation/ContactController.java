@@ -10,7 +10,6 @@ import contact.controller.internal.InternalContactController;
 import contact.domain.dto.contact.ReqCreateContactDto;
 import contact.domain.dto.contact.ReqUpdateContactDto;
 import contact.domain.dto.contact.ResEntryContactDto;
-import contact.domain.dto.query.ContactQuery;
 import contact.domain.mapper.ContactMapper;
 import contact.service.internal.InternalContactService;
 import jakarta.enterprise.context.ApplicationScoped;

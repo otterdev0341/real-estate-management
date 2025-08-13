@@ -4,7 +4,6 @@ import com.spencerwi.either.Either;
 import common.domain.dto.query.BaseQuery;
 import common.domain.entity.Contact;
 import common.errorStructure.RepositoryError;
-import contact.domain.dto.query.ContactQuery;
 
 import java.util.List;
 import java.util.Optional;
