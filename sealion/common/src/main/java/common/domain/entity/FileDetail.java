@@ -45,6 +45,7 @@ public class FileDetail extends BaseTime {
     private String name;
 
 
+    @JsonIgnore
     @Column(name = "object_key", nullable = false, length = 255)
     private String objectKey;
 
@@ -67,10 +68,12 @@ public class FileDetail extends BaseTime {
     @ToString.Exclude
     private FileType type;
 
+    @JsonIgnore
     @Column(name = "size", nullable = false)
     private Long size;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonIgnoreProperties({"password", "contactType", "role", "gender", "email","firstName", "lastName", "dob"})
     @JoinColumn(
         name = "created_by",
         referencedColumnName = "id",
@@ -95,12 +98,14 @@ public class FileDetail extends BaseTime {
             inverseForeignKey = @ForeignKey(name = "fk_property_file_property")
     )
     @ToString.Exclude
+    @JsonBackReference
     private Set<Property> properties = new HashSet<>();
 
     @ManyToMany(mappedBy = "fileDetails")
     @JsonIgnoreProperties("fileDetails")
     @ToString.Exclude
     @Builder.Default
+    @JsonBackReference
     private Set<Memo> memos = new HashSet<>();
 
 

@@ -1,5 +1,7 @@
 package common.controller.declare;
 
+import common.domain.dto.fileDetail.RequestAttachFile;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.core.Response;
@@ -9,7 +11,7 @@ import java.util.UUID;
 
 public interface FileAssetManagementController {
 
-    Response attachFileToTarget(UUID targetId, FileUpload targetFile);
+    Response attachFileToTarget(UUID targetId, @Valid RequestAttachFile targetFile);
 
     Response deleteFileFromTarget(UUID targetId, UUID targetFileId);
 

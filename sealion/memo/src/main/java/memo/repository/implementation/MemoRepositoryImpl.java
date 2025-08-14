@@ -4,28 +4,37 @@ import com.speedment.jpastreamer.application.JPAStreamer;
 import com.spencerwi.either.Either;
 import common.domain.comparator.FileAssetManagementComparator;
 import common.domain.dto.query.BaseQuery;
+import common.domain.entity.ContactType;
 import common.domain.entity.FileDetail;
 import common.domain.entity.Memo;
 import common.errorStructure.RepositoryError;
 import common.repository.declare.FileAssetManagementRepository;
 import common.service.declare.fileAssetManagement.fileAssetChoice.FileCaseSelect;
+import fileDetail.repository.internal.InternalFileDetailRepository;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import memo.domain.comparator.MemoComparator;
 import memo.repository.internal.InternalMemoRepository;
 import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Stream;
+
+import static common.service.declare.fileAssetManagement.fileAssetChoice.FileCaseSelect.fileCaseMatches;
 
 @ApplicationScoped
 @Named("memoRepository")
 public class MemoRepositoryImpl implements PanacheRepositoryBase<Memo, UUID>, InternalMemoRepository, FileAssetManagementRepository {
 
+    private final InternalFileDetailRepository fileDetailRepository;
     private final JPAStreamer jpaStreamer = JPAStreamer.of(this::getEntityManager);
+
+    @Inject
+    public MemoRepositoryImpl(InternalFileDetailRepository fileDetailRepository) {
+        this.fileDetailRepository = fileDetailRepository;
+    }
 
     @Override
     public Either<RepositoryError, Boolean> isExistByNameAndUserId(String memoName, UUID userId) {
@@ -71,12 +80,10 @@ public class MemoRepositoryImpl implements PanacheRepositoryBase<Memo, UUID>, In
     @Override
     public Either<RepositoryError, Memo> findMemoAndUserId(UUID memoId, UUID userId) {
         try {
-            Optional<Memo> memoOpt = find("id = ?1 and createdBy.id = ?2", memoId, userId).firstResultOptional();
-            return memoOpt
-                    .<Either<RepositoryError, Memo>>map(Either::right)
-                    .orElseGet(() -> Either.left(new RepositoryError.NotFound("Memo not found")));
+            Optional<Memo> contactType = find("id = ?1 and createdBy.id = ?2", memoId, userId).firstResultOptional();
+            return contactType.<Either<RepositoryError, Memo>>map(Either::right).orElseGet(() -> Either.left(new RepositoryError.NotFound("Memo not found in due repository")));
         } catch (Exception e) {
-            return Either.left(new RepositoryError.FetchFailed("Failed to find memo by ID and user ID: " + e.getMessage()));
+            return Either.left(new RepositoryError.PersistenceFailed("Operation failed on finding Memo in repository"));
         }
     }
 
@@ -152,35 +159,27 @@ public class MemoRepositoryImpl implements PanacheRepositoryBase<Memo, UUID>, In
     @Override
     public Either<RepositoryError, List<FileDetail>> getAllFileByCriteria(UUID targetId, UUID userId, FileCaseSelect fileCase) {
         try {
-            var stream = jpaStreamer.stream(Memo.class)
-                    .filter(memo -> memo.getId().equals(targetId))
-                    .filter(memo -> memo.getCreatedBy().getId().equals(userId));
+            // Find the specific memo first
+            Either<RepositoryError, Memo> memoExist = findMemoAndUserId(targetId, userId);
+            if (memoExist.isLeft()) {
+                return Either.left(new RepositoryError.NotFound("Memo not found"));
+            }
+            Memo memo = memoExist.getRight();
 
-            List<FileDetail> result;
-            // 1. Instantiate the comparator class for the Memo type
-            FileAssetManagementComparator<Memo> fileComparator = FileAssetManagementComparator.of(Memo.class);
+            // Get the files from the memo's fileDetails collection
+            Set<FileDetail> fileDetails = memo.getFileDetails();
 
-            // 2. Declare the comparator variable
-            Comparator<Memo> comparator = null;
+            // Dynamically filter the files based on the criteria
+            Stream<FileDetail> fileStream = fileDetails.stream();
 
-            // 3. Use the instantiated object to get the correct comparator
-            if (fileCase.equals(FileCaseSelect.IMAGE)) {
-                comparator = fileComparator.BY_FILE_IMAGE;
-
-            } else if (fileCase.equals(FileCaseSelect.PDF)) {
-                comparator = fileComparator.BY_FILE_PDF;
-
-            } else if (fileCase.equals(FileCaseSelect.OTHER)) {
-                comparator = fileComparator.BY_FILE_OTHER;
-
+            if (fileCase.equals(FileCaseSelect.ALL)) {
+                // No additional filtering needed
+                return Either.right(fileStream.toList());
             }
 
-            if(comparator == null) {
-                result = stream.flatMap(memo -> memo.getFileDetails().stream()).toList();
-            } else {
-                result = stream.sorted(comparator).flatMap(memo -> memo.getFileDetails().stream()).toList();
-            }
-
+            List<FileDetail> result = fileStream
+                    .filter(fileDetail -> FileCaseSelect.fileCaseMatches(fileDetail, fileCase))
+                    .toList();
 
             return Either.right(result);
 

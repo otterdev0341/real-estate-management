@@ -65,7 +65,8 @@ public class Memo extends BaseTime implements HasFileDetails {
     @JsonBackReference
     private MemoType memoType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonIgnoreProperties({"password", "contact", "role", "gender", "email","firstName", "lastName", "dob"})
     @JoinColumn(
             name = "created_by",
             referencedColumnName = "id",

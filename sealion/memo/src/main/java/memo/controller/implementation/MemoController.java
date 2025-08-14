@@ -4,6 +4,7 @@ import com.spencerwi.either.Either;
 import common.controller.base.BaseController;
 import common.controller.declare.FileAssetManagementController;
 import common.domain.dto.base.ResListBaseDto;
+import common.domain.dto.fileDetail.RequestAttachFile;
 import common.domain.dto.query.BaseQuery;
 import common.domain.entity.FileDetail;
 import common.response.ErrorResponse;
@@ -36,6 +37,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 import org.eclipse.microprofile.openapi.annotations.security.SecuritySchemes;
+import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import java.io.File;
@@ -79,11 +81,12 @@ public class MemoController extends BaseController implements InternalMemoContro
     @POST
     @Path("/attach/{memoId}")
     @Operation(description = "attach file to target by giving memoId", summary = "attach file to target both value is required!!")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Transactional
     @Override
-    public Response attachFileToTarget(@PathParam("memoId") UUID targetId,  FileUpload targetFile) {
+    public Response attachFileToTarget(@PathParam("memoId") UUID targetId, @BeanParam @Valid RequestAttachFile targetFile) {
         UUID userId = getCurrentUserIdOrThrow();
-        return fileAssetManagementService.attachFileToTarget(targetId, userId, targetFile)
+        return fileAssetManagementService.attachFileToTarget(targetId, userId, targetFile.getFile().getFirst())
                 .fold(
                         error -> {
                             ErrorResponse errorResponse = new ErrorResponse(
@@ -181,7 +184,7 @@ public class MemoController extends BaseController implements InternalMemoContro
                         },
                         success -> {
                             SuccessResponse<List<FileDetail>> fetchSuccessResponse = new SuccessResponse<>(
-                                    "Fetch file related to memo sucdessfully",
+                                    "Fetch file related to memo successfully",
                                     success
                             );
                             return Response

@@ -42,7 +42,7 @@ public class FileDetailRepositoryImpl implements PanacheRepositoryBase<FileDetai
     @Override
     public Either<RepositoryError, FileDetail> findFileDetailAndUserId(UUID fileId, UUID userId) {
         try {
-            Optional<FileDetail> fileDetail = find("fileId = ?1 and userId = ?2", fileId, userId).firstResultOptional();
+            Optional<FileDetail> fileDetail = find("id = ?1 and createdBy.id = ?2", fileId, userId).firstResultOptional();
             return fileDetail.<Either<RepositoryError, FileDetail>>map(Either::right)
                     .orElseGet(() -> Either.left(new RepositoryError.FetchFailed("FileDetail not found for fileId: " + fileId)));
         } catch (Exception e) {
@@ -53,7 +53,7 @@ public class FileDetailRepositoryImpl implements PanacheRepositoryBase<FileDetai
     @Override
     public Either<RepositoryError, Boolean> deleteFileDetailByFileIdAndUserId(UUID fileId, UUID userId) {
         try {
-            Optional<FileDetail> fileDetail = find("fileId = ?1 and userId = ?2", fileId, userId).firstResultOptional();
+            Optional<FileDetail> fileDetail = find("id = ?1 and createdBy.id = ?2", fileId, userId).firstResultOptional();
             if (fileDetail.isPresent()) {
                 delete(fileDetail.get());
                 return Either.right(true);

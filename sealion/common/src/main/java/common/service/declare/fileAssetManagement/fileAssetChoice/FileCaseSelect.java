@@ -1,6 +1,7 @@
 package common.service.declare.fileAssetManagement.fileAssetChoice;
 
 import com.spencerwi.either.Either;
+import common.domain.entity.FileDetail;
 
 import java.util.Optional;
 
@@ -20,22 +21,24 @@ public enum FileCaseSelect {
         if (value == null) {
             return Either.left("can't parse string to enum reason value is null");
         }
-        try {
-            return Either.right(FileCaseSelect.valueOf(value.toLowerCase()));
-        } catch (Exception e) {
-            // No matching enum constant found
-            return Either.left("Error while parsing string to FileCaseSelect by: " + e.getMessage());
+        for (FileCaseSelect fileCase : FileCaseSelect.values()) {
+            if (fileCase.name().equalsIgnoreCase(value.trim())) {
+                return Either.right(fileCase);
+            }
         }
+        return Either.left("Error while parsing string to FileCaseSelect: no matching constant found for '" + value + "'");
     }
 
-    /**
-    * Returns the name of this enum constant.
-    *
-    * @return The name of the enum constant.
-    */
-    @Override
-    public String toString() {
-        return this.name().toLowerCase();
-    }
+    // Helper method to filter files by type
+    public static boolean fileCaseMatches(FileDetail fileDetail, FileCaseSelect fileCase) {
+        String fileTypeDetail = fileDetail.getType().getDetail().toLowerCase();
+        return switch (fileCase) {
+            case IMAGE -> fileTypeDetail.equals("image");
+            case PDF -> fileTypeDetail.equals("pdf");
+            case OTHER -> fileTypeDetail.equals("other");
+            default -> false;
+        };
 
+
+    }
 }

@@ -7,6 +7,7 @@ import common.domain.entity.FileDetail;
 import common.domain.entity.Memo;
 import common.domain.entity.MemoType;
 import common.domain.entity.User;
+import common.errorStructure.RepositoryError;
 import common.errorStructure.ServiceError;
 import common.repository.declare.FileAssetManagementRepository;
 import common.service.declare.fileAssetManagement.FileAssetManagementService;
@@ -26,6 +27,7 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -289,7 +291,7 @@ public class MemoService implements DeclareMemoService, InternalMemoService, Fil
 
     @Override
     public Either<ServiceError, Boolean> deleteMemoByIdAndUserId(UUID memoId, UUID userId) {
-        return memoRepository.deleteMemoByIdAndUserId(memoId, userId)
+        return helperDeleteMemoWithRelationFile(memoId, userId)
                 .fold(
                         error -> {
                             ServiceError theError = new ServiceError.OperationFailed("Failed to delete memo cause by:" + error.message());
@@ -321,5 +323,44 @@ public class MemoService implements DeclareMemoService, InternalMemoService, Fil
         }
         return Either.right(fileDetailPersisted.getRight());
 
+    }
+
+    private Either<ServiceError, Boolean> helperDeleteMemoWithRelationFile(UUID memoId, UUID userId) {
+        // 1. Find the memo and its associated files
+        Either<RepositoryError, Memo> isMemoExist = memoRepository.findMemoAndUserId(memoId, userId);
+        if(isMemoExist.isLeft()) {
+            ServiceError theError = new ServiceError.NotFound("Fail to delete Failed on fetch operation: " + isMemoExist.getLeft().message());
+            return Either.left(theError);
+        }
+        Memo memo = isMemoExist.getRight();
+
+        // 2. Get the associated FileDetail entities.
+        Set<FileDetail> filesToDelete = memo.getFileDetails();
+
+        // 3. Delete the memo (this will clear the join table entries for this memo)
+        Either<RepositoryError, Boolean> deletedMemoResult = memoRepository.deleteMemoByIdAndUserId(memo.getId(), userId);
+        if(deletedMemoResult.isLeft()) {
+            ServiceError theError = new ServiceError.OperationFailed("Error occurred while delete memo cause by" + deletedMemoResult.getLeft().message() );
+            return Either.left(theError);
+        }
+        if (!deletedMemoResult.getRight()) {
+            ServiceError theError = new ServiceError.PersistenceFailed("Failed to delete memo cause by" + deletedMemoResult.getLeft().message() );
+            return Either.left(theError);
+        }
+
+        // 4. Check if a file is an orphan and delete it if so
+        for (FileDetail file : filesToDelete) {
+            Either<ServiceError, Boolean> deletedRelatedFileResult = fileDetailService.deleteFileDetailByFileIdAndUserId(file.getId(), userId);
+            if (deletedRelatedFileResult.isLeft()) {
+                ServiceError deleteRelationError = new ServiceError.OperationFailed("Error occurred by delete file associate with memo cause by: " + deletedRelatedFileResult.getLeft().message());
+                return Either.left(deleteRelationError);
+            }
+            if(!deletedRelatedFileResult.getRight()) {
+                ServiceError deleteRelationError = new ServiceError.BusinessRuleFailed("Failed to delete file associate with memo expect true to return but got : " + deletedRelatedFileResult.getRight());
+                return Either.left(deleteRelationError);
+            }
+        }
+
+        return Either.right(true);
     }
 }
