@@ -4,6 +4,7 @@ import cloudFlare.repository.internal.InternalCloudFlareR2Repository;
 import cloudFlare.service.declare.DeclareCloudFlareR2Service;
 import com.spencerwi.either.Either;
 import common.domain.dto.fileDetail.ResFileR2Dto;
+import common.domain.entity.FileDetail;
 import common.errorStructure.ServiceError;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -55,4 +56,6 @@ public class CloudFlareR2Service implements DeclareCloudFlareR2Service {
                         Either::right
                 );
     }
+
+
 }

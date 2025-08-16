@@ -17,4 +17,6 @@ public interface DeclareFileDetailService {
     Either<ServiceError, FileDetail> findFileDetailAndUserId(UUID fileId, UUID userId);
 
     Either<ServiceError, Boolean> deleteFileDetailByFileIdAndUserId(UUID fileDetailId, UUID userId);
+
+    Either<ServiceError, FileDetail> helpPrePersistFileDetail(FileUpload fileUpload, UUID userId);
 }

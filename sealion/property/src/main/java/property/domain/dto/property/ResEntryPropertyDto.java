@@ -2,7 +2,9 @@ package property.domain.dto.property;
 
 
 import common.domain.dto.fileDetail.ResEntryFileDetailDto;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import memo.domain.dto.memo.ResEntryMemoDto;
 
 import java.math.BigDecimal;
@@ -10,9 +12,11 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ResEntryPropertyDto {
 
-    private UUID ud;
+    private UUID id;
 
     private String name;
 
@@ -28,9 +32,7 @@ public class ResEntryPropertyDto {
 
     private BigDecimal fsp;
 
-
     private String propertyStatus;
-
 
     private String ownerBy;
 
@@ -44,10 +46,9 @@ public class ResEntryPropertyDto {
 
     private String createdBy;
 
-    private List<String> propertyType;
+    private List<String> propertyTypes;
 
     private List<ResEntryFileDetailDto> files;
 
-    private List<ResEntryMemoDto> memos;
 
 }

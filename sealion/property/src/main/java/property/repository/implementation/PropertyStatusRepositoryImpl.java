@@ -7,8 +7,9 @@ import common.domain.entity.PropertyStatus;
 import common.errorStructure.RepositoryError;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
+import property.domain.comparator.PropertyStatusComparators;
 import property.repository.internal.InternalPropertyStatusRepository;
-
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -61,7 +62,7 @@ public class PropertyStatusRepositoryImpl implements PanacheRepositoryBase<Prope
     }
 
     @Override
-    public Either<RepositoryError, PropertyStatus> findPropertyStatusAndUserId(UUID propertyStatusId, UUID userId) {
+    public Either<RepositoryError, PropertyStatus> findPropertyStatusByIdAndUserId(UUID propertyStatusId, UUID userId) {
         try {
          Optional<PropertyStatus> propertyStatusOptional = find("id = ?1 and createdBy.id = ?2", propertyStatusId, userId).firstResultOptional();
             return propertyStatusOptional
@@ -74,7 +75,53 @@ public class PropertyStatusRepositoryImpl implements PanacheRepositoryBase<Prope
 
     @Override
     public Either<RepositoryError, List<PropertyStatus>> findAllPropertyStatusWithUserId(UUID userId, BaseQuery query) {
-        return null;
+        try {
+
+            var stream = jpaStreamer.stream(PropertyStatus.class)
+                    .filter(propertyStatus -> propertyStatus.getCreatedBy().getId().equals(userId));
+
+            // apply sorting base on query parameters
+            if (query.getSortBy() != null && !query.getSortBy().isBlank()) {
+                Comparator<PropertyStatus> comparator;
+
+                // Determine the comparator based on sortBy
+                if ("detail".equalsIgnoreCase(query.getSortBy())) {
+                    comparator = PropertyStatusComparators.BY_DETAIL;
+                } else if ("createAt".equalsIgnoreCase(query.getSortBy())) {
+                    comparator = PropertyStatusComparators.BY_CREATED_AT;
+                } else {
+                    return Either.left(new RepositoryError.FetchFailed("Invalid sortBy value: " + query.getSortBy()));
+                }
+
+                // Apply ascending or descending order
+                String sortDirection = query.getSortDirection();
+                if (sortDirection == null || sortDirection.isBlank() || "DESC".equalsIgnoreCase(sortDirection)) {
+                    comparator = comparator.reversed(); // Default to DESC
+                }
+                stream = stream.sorted(comparator);
+            }
+
+            int page = query.getPage() != null ? query.getPage() : 0;
+            int size = query.getSize() != null ? query.getSize() : 10;
+
+            // Pagination logic
+            int skip = page * size;
+            if (skip < 0) {
+                skip = 0; // Ensure skip is not negative
+            }
+            if (size <= 0) {
+                return Either.left(new RepositoryError.FetchFailed("Size must be greater than zero"));
+            }
+            List<PropertyStatus> result = stream
+                    .skip(skip)
+                    .limit(size)
+                    .toList();
+
+            return Either.right(result);
+
+        } catch (Exception e) {
+            return Either.left(new RepositoryError.FetchFailed("Failed to find property Status" + e.getMessage()));
+        }
     }
 
     @Override

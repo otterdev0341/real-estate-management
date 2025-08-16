@@ -135,6 +135,26 @@ public class ContactService implements InternalContactService, DeclareContactSer
     }
 
     @Override
+    public Either<ServiceError, Contact> findContactByIdAndUser(UUID contactId, UUID userId) {
+        return contactRepository.findContactByIdAndUserId(contactId, userId)
+                .fold(
+                        error -> {
+                            ServiceError theError = new ServiceError.OperationFailed("Error occurred while fetch user cause by: " + error.message());
+                            return Either.left(theError);
+                        },
+                        result -> {
+                            if(result.isPresent()) {
+                                return Either.right(result.get());
+                            } else {
+                                ServiceError notFoundError = new ServiceError.NotFound("contact not found");
+                                return Either.left(notFoundError);
+
+                            }
+                        }
+                );
+    }
+
+    @Override
     public Either<ServiceError, ResListBaseDto<ResEntryContactDto>> findAllContactsByUserId(UUID userId, BaseQuery query) {
         return contactRepository.findAllContactWithUserId(userId, query)
                 .fold(

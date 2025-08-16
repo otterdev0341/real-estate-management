@@ -4,7 +4,6 @@ import com.spencerwi.either.Either;
 import common.domain.dto.query.BaseQuery;
 import common.domain.entity.PropertyType;
 import common.errorStructure.RepositoryError;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -16,9 +15,9 @@ public interface InternalPropertyTypeRepository {
 
     Either<RepositoryError, PropertyType> createPropertyType(PropertyType propertyType);
 
-    Either<RepositoryError, PropertyType> updatePropertyType(PropertyType propertyType, UUID userId);
+    Either<RepositoryError, PropertyType> updatePropertyType(PropertyType propertyType);
 
-    Either<RepositoryError, PropertyType> findPropertyTypeAndUserId(UUID propertyTypeId, UUID userId);
+    Either<RepositoryError, PropertyType> findPropertyTypeByIdAndUserId(UUID propertyTypeId, UUID userId);
 
     Either<RepositoryError, Boolean> deletePropertyTypeByIdAndUserId(UUID propertyTypeId, UUID userId);
 

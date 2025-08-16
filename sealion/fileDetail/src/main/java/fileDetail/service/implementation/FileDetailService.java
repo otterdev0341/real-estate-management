@@ -136,4 +136,45 @@ public class FileDetailService implements DeclareFileDetailService {
 
         return Either.right(deleteFileDetail.getRight());
     }
+
+    @Override
+    public Either<ServiceError, FileDetail> helpPrePersistFileDetail(FileUpload fileUpload, UUID userId) {
+        // check if user exists : if failed return error
+        Either<ServiceError, User> userExist = userService.findUserById(userId);
+        if (userExist.isLeft()) {
+            return Either.left(new ServiceError.NotFound("User not found with id: " + userExist.getLeft().message()));
+        }
+        User user = userExist.getRight();
+
+        // update file to cloud : if failed return error
+        Either<ServiceError, ResFileR2Dto> uploadedFile = cloudFlareR2Service.uploadFile(fileUpload);
+        if (uploadedFile.isLeft()) {
+            return Either.left(new ServiceError.OperationFailed("Failed to upload file to cloud: " + uploadedFile.getLeft().message()));
+        }
+        ResFileR2Dto resFileR2Dto = uploadedFile.getRight();
+
+        // check file type : if failed return error
+        Either<RepositoryError, FileType> fileType = fileTypeRepository.getFileTypeByFileWithExtension(resFileR2Dto.getFileName());
+        if(fileType.isLeft()) {
+            // delete file from cloud if file type not found
+            Either<ServiceError, Boolean> deleteFile = cloudFlareR2Service.deleteFile(resFileR2Dto.getObjectKey());
+            if (deleteFile.isLeft()) {
+                return Either.left(new ServiceError.OperationFailed("Failed to delete file from cloud: " + deleteFile.getLeft().message()));
+            }
+            return Either.left(new ServiceError.NotFound("File type not found for extension: " + resFileR2Dto.getFileName()));
+        }
+        FileType type = fileType.getRight();
+        // create file detail : if failed delete file from cloud
+        FileDetail fileDetail1 = FileDetail.builder()
+                .name(resFileR2Dto.getFileName())
+                .objectKey(resFileR2Dto.getObjectKey())
+                .path(resFileR2Dto.getFileUrl())
+                .type(type)
+                .size(resFileR2Dto.getContentLength())
+                .createdBy(user)
+                .build();
+
+
+        return Either.right(fileDetail1);
+    }
 }

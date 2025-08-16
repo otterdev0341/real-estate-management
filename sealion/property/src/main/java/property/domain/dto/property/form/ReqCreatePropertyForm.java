@@ -3,7 +3,9 @@ package property.domain.dto.property.form;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.core.MediaType;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.jboss.resteasy.reactive.PartType;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -11,6 +13,8 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 import java.util.List;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ReqCreatePropertyForm {
     @RestForm("name")
     @PartType(MediaType.TEXT_PLAIN)

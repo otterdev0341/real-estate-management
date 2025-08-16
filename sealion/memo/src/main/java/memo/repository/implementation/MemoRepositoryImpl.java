@@ -2,39 +2,27 @@ package memo.repository.implementation;
 
 import com.speedment.jpastreamer.application.JPAStreamer;
 import com.spencerwi.either.Either;
-import common.domain.comparator.FileAssetManagementComparator;
 import common.domain.dto.query.BaseQuery;
-import common.domain.entity.ContactType;
 import common.domain.entity.FileDetail;
 import common.domain.entity.Memo;
 import common.errorStructure.RepositoryError;
 import common.repository.declare.FileAssetManagementRepository;
 import common.service.declare.fileAssetManagement.fileAssetChoice.FileCaseSelect;
-import fileDetail.repository.internal.InternalFileDetailRepository;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import memo.domain.comparator.MemoComparator;
 import memo.repository.internal.InternalMemoRepository;
-import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.util.*;
 import java.util.stream.Stream;
-
-import static common.service.declare.fileAssetManagement.fileAssetChoice.FileCaseSelect.fileCaseMatches;
 
 @ApplicationScoped
 @Named("memoRepository")
 public class MemoRepositoryImpl implements PanacheRepositoryBase<Memo, UUID>, InternalMemoRepository, FileAssetManagementRepository {
 
-    private final InternalFileDetailRepository fileDetailRepository;
     private final JPAStreamer jpaStreamer = JPAStreamer.of(this::getEntityManager);
 
-    @Inject
-    public MemoRepositoryImpl(InternalFileDetailRepository fileDetailRepository) {
-        this.fileDetailRepository = fileDetailRepository;
-    }
 
     @Override
     public Either<RepositoryError, Boolean> isExistByNameAndUserId(String memoName, UUID userId) {

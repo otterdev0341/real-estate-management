@@ -89,19 +89,22 @@ public class FileDetail extends BaseTime {
     private User createdBy;
 
     // relation
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "property_file_details",
-            joinColumns = @JoinColumn(name = "file_detail_id"),
-            inverseJoinColumns = @JoinColumn(name = "property_id"),
-            foreignKey = @ForeignKey(name = "fk_property_file_file_detail"),
-            inverseForeignKey = @ForeignKey(name = "fk_property_file_property")
-    )
+    @ManyToMany(mappedBy = "fileDetails", fetch = FetchType.LAZY)
     @ToString.Exclude
+    @Builder.Default
     @JsonBackReference
     private Set<Property> properties = new HashSet<>();
 
-    @ManyToMany(mappedBy = "fileDetails")
+    @ManyToMany
+    @JoinTable(
+            name = "memo_file_detail",
+            joinColumns = @JoinColumn(name = "memo_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "file_detail_id", referencedColumnName = "id"),
+            uniqueConstraints = @UniqueConstraint(
+                    name = "uq_memo_file_detail",
+                    columnNames = {"memo_id", "file_detail_id"}
+            )
+    )
     @JsonIgnoreProperties("fileDetails")
     @ToString.Exclude
     @Builder.Default
@@ -112,18 +115,19 @@ public class FileDetail extends BaseTime {
     // method
 
     @Override
-    public final boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null) return false;
-        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
-        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
-        if (thisEffectiveClass != oEffectiveClass) return false;
+        if (!(o instanceof FileDetail)) return false;
         FileDetail that = (FileDetail) o;
-        return getId() != null && Objects.equals(getId(), that.getId());
+
+        if (this.id != null && that.id != null) {
+            return this.id.equals(that.id);
+        }
+        return Objects.equals(this.objectKey, that.objectKey);
     }
 
     @Override
-    public final int hashCode() {
-        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+    public int hashCode() {
+        return id != null ? id.hashCode() : (objectKey != null ? objectKey.hashCode() : 0);
     }
 }

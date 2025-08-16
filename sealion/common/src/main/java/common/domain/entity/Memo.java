@@ -128,13 +128,29 @@ public class Memo extends BaseTime implements HasFileDetails {
 
     // relation method
     public void addFileDetail(FileDetail fileDetail) {
-        this.getFileDetails().add(fileDetail);
-        fileDetail.getMemos().add(this);
+        if (!this.fileDetails.contains(fileDetail)) {
+            this.fileDetails.add(fileDetail);
+            fileDetail.getMemos().add(this);
+        }
     }
 
     public void removeFileDetail(FileDetail fileDetail) {
         this.getFileDetails().remove(fileDetail);
         fileDetail.getMemos().remove(this);
     }
+
+    public void addProperty(Property property) {
+        if(!this.properties.contains(property)) {
+            this.getProperties().add(property);
+            property.getMemos().add(this);
+        }
+    }
+
+    public void removeProperty(Property property){
+        this.getProperties().remove(property);
+        property.getMemos().remove(this);
+    }
+
+
 
 }

@@ -6,7 +6,7 @@ import common.domain.entity.base.BaseTime;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
-
+import jakarta.persistence.CascadeType;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Objects;
@@ -115,7 +115,8 @@ public class Property extends BaseTime {
     @Column(name = "sold", nullable = false)
     private Boolean sold = false;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonIgnoreProperties({"password", "contact", "role", "gender", "email","firstName", "lastName", "dob"})
     @JoinColumn(
         name = "created_by",
         referencedColumnName = "id",
@@ -144,15 +145,14 @@ public class Property extends BaseTime {
     private Set<PropertyType> propertyTypes = new HashSet<>();
 
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "property_file_details",
             joinColumns = @JoinColumn(name = "property_id"),
-            inverseJoinColumns = @JoinColumn(name = "file_detail_id"),
-            foreignKey = @ForeignKey(name = "fk_property_file_property"),
-            inverseForeignKey = @ForeignKey(name = "fk_property_file_file_detail")
+            inverseJoinColumns = @JoinColumn(name = "file_detail_id")
     )
     @ToString.Exclude
+    @Builder.Default
     private Set<FileDetail> fileDetails = new HashSet<>();
 
     @ManyToMany(mappedBy = "properties", fetch = FetchType.LAZY)
@@ -160,7 +160,6 @@ public class Property extends BaseTime {
     @JsonIgnoreProperties("properties") // Prevent circular reference
     private Set<Memo> memos = new HashSet<>();
 
-    // method
 
 
     @Override
@@ -178,4 +177,35 @@ public class Property extends BaseTime {
     public final int hashCode() {
         return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
     }
+
+    // relation method
+    // file detail
+    public void addFileDetail(FileDetail fileDetail) {
+        if (fileDetails == null) {
+            fileDetails = new HashSet<>();
+        }
+        if (fileDetail.getProperties() == null) {
+            fileDetail.setProperties(new HashSet<>());
+        }
+        this.fileDetails.add(fileDetail);
+        fileDetail.getProperties().add(this);
+    }
+
+    public void removeFileDetail(FileDetail fileDetail) {
+        this.getFileDetails().remove(fileDetail);
+        fileDetail.getProperties().remove(this);
+    }
+    // property type
+    public void addPropertyType(PropertyType propertyType) {
+        if(!this.propertyTypes.contains(propertyType)) {
+            this.getPropertyTypes().add(propertyType);
+            propertyType.getProperties().add(this);
+        }
+    }
+
+    public void removePropertyType(PropertyType propertyType) {
+        this.getPropertyTypes().remove(propertyType);
+        propertyType.getProperties().remove(this);
+    }
+
 }

@@ -2,15 +2,18 @@ package property.domain.dto.property;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ReqUpdatePropertyDto {
 
-    @NotBlank(message = "Name must not be empty")
     private String name;
 
     private String description;
@@ -25,10 +28,8 @@ public class ReqUpdatePropertyDto {
 
     private BigDecimal fsp;
 
-    @NotNull(message = "Property status must not be empty")
     private UUID propertyStatus;
 
-    @NotNull(message = "OwnerBy must not be empty")
     private UUID ownerBy;
 
     private String mapUrl;
