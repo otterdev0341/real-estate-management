@@ -1,15 +1,14 @@
 databaseChangeLog:
   - changeSet:
-      id: A
+      id: A_create_roles_table
       author: otterdev
-      labels: example-label
-      context: example-context
-      comment: Create roles table and insert default values
+      labels: create-tables
+      comment: Create the roles table
       preconditions:
         - onFail: MARK_RAN
         - not:
             - tableExists:
-                tableName: file_details
+                tableName: roles
       changes:
         - createTable:
             tableName: roles
@@ -29,6 +28,22 @@ databaseChangeLog:
                     nullable: false
                     unique: true
 
+  - changeSet:
+      id: B_insert_roles_data
+      author: otterdev
+      labels: init-data
+      context: default
+      comment: Insert default role values
+      preconditions:
+        - onFail: MARK_RAN
+        - and:
+            - tableExists:
+                tableName: roles
+            - not:
+                - sqlCheck:
+                    sql: "SELECT count(*) FROM roles WHERE detail IN ('user', 'admin')"
+                    expectedResult: "2"
+      changes:
         - insert:
             tableName: roles
             columns:

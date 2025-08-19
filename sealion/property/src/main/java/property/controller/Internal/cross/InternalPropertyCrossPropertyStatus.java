@@ -1,4 +1,4 @@
-package property.controller.Internal.property;
+package property.controller.Internal.cross;
 
 import jakarta.validation.Valid;
 import jakarta.ws.rs.core.Response;

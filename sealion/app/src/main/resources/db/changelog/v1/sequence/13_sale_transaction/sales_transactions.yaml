@@ -38,22 +38,11 @@ databaseChangeLog:
                   type: UUID
                   constraints:
                     nullable: false
-
-              - column:
-                  name: note
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
-
               - column:
                   name: price
                   type: decimal(10,2)
                   constraints:
                     nullable: false
-
-              - column:
-                  name: created_by
-                  type: UUID
 
               - column:
                   name: created_at

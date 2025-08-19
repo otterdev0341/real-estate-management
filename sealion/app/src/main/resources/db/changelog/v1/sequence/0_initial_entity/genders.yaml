@@ -1,10 +1,9 @@
 databaseChangeLog:
   - changeSet:
-      id: A
+      id: A_create_genders_table
       author: otterdev
-      labels: example-label
-      context: example-context
-      comment: Create genders table and insert default values
+      labels: create-tables
+      comment: Create the genders table
       preconditions:
         - onFail: MARK_RAN
         - not:
@@ -29,6 +28,21 @@ databaseChangeLog:
                     nullable: false
                     unique: true
 
+  - changeSet:
+      id: B_insert_genders_data
+      author: otterdev
+      labels: init-data
+      comment: Insert default gender values
+      preconditions:
+        - onFail: MARK_RAN
+        - and:
+            - tableExists:
+                tableName: genders
+            - not:
+                - sqlCheck:
+                    sql: "SELECT count(*) FROM genders WHERE detail IN ('male', 'female', 'other')"
+                    expectedResult: "3"
+      changes:
         - insert:
             tableName: genders
             columns:

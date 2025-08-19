@@ -1,10 +1,9 @@
 databaseChangeLog:
   - changeSet:
-      id: A
+      id: A_create_file_types
       author: otterdev
-      labels: init-data
-      context: default
-      comment: Create file_types table and insert default types
+      labels: create-tables
+      comment: Create file_types table
       preconditions:
         - onFail: MARK_RAN
         - not:
@@ -28,7 +27,22 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     unique: true
-
+  - changeSet:
+      id: B_insert_file_types
+      author: otterdev
+      labels: init-data
+      context: default
+      comment: Insert default file types
+      preconditions:
+        - onFail: MARK_RAN
+        - and:
+            - tableExists:
+                tableName: file_types
+            - not:
+                - sqlCheck:
+                    sql: "SELECT count(*) FROM file_types WHERE detail IN ('image', 'pdf', 'other')"
+                    expectedResult: "3"
+      changes:
         - insert:
             tableName: file_types
             columns:

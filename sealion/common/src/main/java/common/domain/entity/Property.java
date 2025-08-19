@@ -208,4 +208,16 @@ public class Property extends BaseTime {
         propertyType.getProperties().remove(this);
     }
 
+    public void addMemo(Memo memo) {
+        if(!this.memos.contains(memo)) {
+            this.getMemos().add(memo);
+            memo.getProperties().add(this);
+        }
+    }
+
+    public void removeMemo(Memo memo) {
+        this.getMemos().remove(memo);
+        memo.getProperties().remove(this);
+    }
+
 }

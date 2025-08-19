@@ -19,6 +19,8 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import memo.domain.dto.memo.ResEntryMemoDto;
+import memo.domain.mapper.MemoMapper;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
@@ -26,8 +28,9 @@ import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 import org.eclipse.microprofile.openapi.annotations.security.SecuritySchemes;
+import property.controller.Internal.cross.InternalMemoCrossPropertyController;
 import property.controller.Internal.property.InternalPropertyController;
-import property.controller.Internal.property.InternalPropertyCrossPropertyStatus;
+import property.controller.Internal.cross.InternalPropertyCrossPropertyStatus;
 import property.domain.dto.property.ReqCreatePropertyDto;
 import property.domain.dto.property.ReqUpdatePropertyDto;
 import property.domain.dto.property.ResEntryPropertyDto;
@@ -37,6 +40,7 @@ import property.domain.dto.propertyType.ReqAssignPropertyType;
 import property.domain.dto.propertyType.ResEntryPropertyTypeDto;
 import property.domain.mapper.PropertyMapper;
 import property.domain.mapper.PropertyTypeMapper;
+import property.service.cross.InternalMemoCrossPropertyService;
 import property.service.declare.DeclarePropertyService;
 import property.service.internal.InternalPropertyService;
 
@@ -56,13 +60,16 @@ import java.util.UUID;
 @SecurityRequirement(name = "jwt")
 @Path("/property")
 @ApplicationScoped
-public class PropertyController extends BaseController implements InternalPropertyController, InternalPropertyCrossPropertyStatus, FileAssetManagementController {
+public class PropertyController extends BaseController implements InternalPropertyController, InternalPropertyCrossPropertyStatus, FileAssetManagementController, InternalMemoCrossPropertyController {
 
     private final InternalPropertyService propertyService;
     private final DeclarePropertyService declarePropertyService;
     private final FileAssetManagementService fileAssetManagementService;
+    private final InternalMemoCrossPropertyService memoCrossPropertyService;
     private final PropertyMapper propertyMapper;
     private final PropertyTypeMapper propertyTypeMapper;
+    private final MemoMapper memoMapper;
+
 
 
     @Inject
@@ -70,14 +77,18 @@ public class PropertyController extends BaseController implements InternalProper
             @Named("propertyService") InternalPropertyService propertyService,
             @Named("propertyService") DeclarePropertyService declarePropertyService,
             @Named("propertyService") FileAssetManagementService fileAssetManagementService,
+            @Named("propertyService") InternalMemoCrossPropertyService memoCrossPropertyService,
             PropertyMapper propertyMapper,
-            PropertyTypeMapper propertyTypeMapper
+            PropertyTypeMapper propertyTypeMapper,
+            MemoMapper memoMapper
     ) {
         this.propertyService = propertyService;
         this.declarePropertyService = declarePropertyService;
         this.fileAssetManagementService = fileAssetManagementService;
         this.propertyMapper = propertyMapper;
         this.propertyTypeMapper = propertyTypeMapper;
+        this.memoCrossPropertyService = memoCrossPropertyService;
+        this.memoMapper = memoMapper;
     }
 
     @POST
@@ -456,4 +467,89 @@ public class PropertyController extends BaseController implements InternalProper
     }
 
 
+    @POST
+    @Path("/{memoId}/{propertyId}")
+    @Transactional
+    @Operation(description = "assign memo to property", summary = "assign memo to property")
+    @Override
+    public Response assignMemoToProperty(@RequestBody(required = false) @PathParam("memoId") UUID memoId, @PathParam("propertyId") UUID propertyId) {
+        UUID userId = getCurrentUserIdOrThrow();
+        return memoCrossPropertyService.assignMemoToProperty(memoId, propertyId, userId)
+                .fold(
+                        error -> {
+                            ErrorResponse errorResponse = new ErrorResponse(
+                                    "Failed to assign memo to property"
+                                    , error.message()
+                                    , Response.Status.BAD_REQUEST
+                            );
+                            return Response.status(errorResponse.getStatusCode()).entity(errorResponse).build();
+                        },
+                        operation -> {
+                            SuccessResponse<Boolean> successResponse = new SuccessResponse<>(
+                                    "assign memo to property operation",
+                                    operation
+                            );
+                            return Response
+                                    .status(operation ? Response.Status.OK : Response.Status.INTERNAL_SERVER_ERROR)
+                                    .entity(successResponse).build();
+                        }
+                );
+    }
+
+
+    @DELETE
+    @Path("/{memoId}/{propertyId}")
+    @Transactional
+    @Operation(description = "remove memo from property", summary = "remove memo from property")
+    @Override
+    public Response removeMemoFromProperty(@RequestBody(required = false) @PathParam("memoId") UUID memoId, @PathParam("propertyId") UUID propertyId) {
+        UUID userId = getCurrentUserIdOrThrow();
+        return memoCrossPropertyService.removeMemoFromProperty(memoId, propertyId, userId)
+                .fold(
+                        error -> {
+                            ErrorResponse errorResponse = new ErrorResponse(
+                                    "Failed to remove memo from property",
+                                    error.message(),
+                                    Response.Status.BAD_REQUEST
+                            );
+                            return Response.status(errorResponse.getStatusCode()).entity(errorResponse).build();
+                        },
+                        operation -> {
+                            SuccessResponse<Boolean> successResponse = new SuccessResponse<>(
+                                    "remove memo from property operation",
+                                    operation
+                            );
+                            return Response
+                                    .status(operation ? Response.Status.OK : Response.Status.INTERNAL_SERVER_ERROR)
+                                    .entity(successResponse).build();
+                        }
+                );
+    }
+
+    @GET
+    @Path("/{propertyId}/memos")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "get all memos related by property", summary = "get all memos related by property")
+    @Override
+    public Response findAllMemosByPropertyId(@RequestBody(required = false) UUID propertyId) {
+        UUID userId = getCurrentUserIdOrThrow();
+        return memoCrossPropertyService.findAllMemosByPropertyId(propertyId, userId)
+                .fold(
+                        error -> {
+                            ErrorResponse errorResponse = new ErrorResponse(
+                                    "Failed to fetch memos related by property",
+                                    error.message(),
+                                    Response.Status.BAD_REQUEST
+                            );
+                            return Response.status(errorResponse.getStatusCode()).entity(errorResponse).build();
+                        },
+                        success -> {
+                            SuccessResponse<ResListBaseDto<ResEntryMemoDto>> successResponse = new SuccessResponse<>(
+                                    "fetch memos related by property successfully",
+                                    memoMapper.toResListBaseDto("memo list", success)
+                            );
+                            return Response.status(Response.Status.OK).entity(successResponse).build();
+                        }
+                );
+    }
 } // end property controller

@@ -1,10 +1,9 @@
 databaseChangeLog:
   - changeSet:
-      id: A
+      id: A_create_transaction_types_table
       author: otterdev
-      labels: init-data
-      context: default
-      comment: Create transaction_types table and insert default values
+      labels: create-tables
+      comment: Create the transaction_types table
       preconditions:
         - onFail: MARK_RAN
         - not:
@@ -29,6 +28,22 @@ databaseChangeLog:
                     nullable: false
                     unique: true
 
+  - changeSet:
+      id: B_insert_transaction_types_data
+      author: otterdev
+      labels: init-data
+      context: default
+      comment: Insert default transaction types
+      preconditions:
+        - onFail: MARK_RAN
+        - and:
+            - tableExists:
+                tableName: transaction_types
+            - not:
+                - sqlCheck:
+                    sql: "SELECT count(*) FROM transaction_types WHERE detail IN ('sale', 'investment', 'payment')"
+                    expectedResult: "3"
+      changes:
         - insert:
             tableName: transaction_types
             columns:

@@ -17,6 +17,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.transaction.Transactional;
+import memo.service.declare.DeclareMemoService;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import property.domain.dto.property.ReqCreatePropertyDto;
@@ -24,6 +25,7 @@ import property.domain.dto.property.ReqUpdatePropertyDto;
 import property.repository.internal.InternalPropertyRepository;
 import property.repository.internal.InternalPropertyStatusRepository;
 import property.repository.internal.InternalPropertyTypeRepository;
+import property.service.cross.InternalMemoCrossPropertyService;
 import property.service.declare.DeclarePropertyService;
 import property.service.internal.InternalPropertyService;
 import property.service.internal.InternalPropertyTypeService;
@@ -32,7 +34,7 @@ import java.util.*;
 
 @ApplicationScoped
 @Named("propertyService")
-public class PropertyService implements DeclarePropertyService, InternalPropertyService, FileAssetManagementService {
+public class PropertyService implements DeclarePropertyService, InternalPropertyService, FileAssetManagementService, InternalMemoCrossPropertyService {
 
     private final InternalPropertyRepository propertyRepository;
     private final InternalPropertyStatusRepository propertyStatusRepository;
@@ -41,6 +43,7 @@ public class PropertyService implements DeclarePropertyService, InternalProperty
     private final DeclareContactService contactService;
     private final DeclareUserService userService;
     private final InternalPropertyTypeRepository propertyTypeRepository;
+    private final DeclareMemoService memoService;
 
     @Inject
     public PropertyService(
@@ -50,7 +53,8 @@ public class PropertyService implements DeclarePropertyService, InternalProperty
             DeclareFileDetailService fileDetailService,
             DeclareContactService contactService,
             DeclareUserService userService,
-            InternalPropertyTypeRepository propertyTypeRepository
+            InternalPropertyTypeRepository propertyTypeRepository,
+            DeclareMemoService memoService
     ) {
         this.propertyRepository = propertyRepository;
         this.propertyStatusRepository = propertyStatusRepository;
@@ -59,6 +63,7 @@ public class PropertyService implements DeclarePropertyService, InternalProperty
         this.contactService = contactService;
         this.userService = userService;
         this.propertyTypeRepository = propertyTypeRepository;
+        this.memoService = memoService;
 
     }
 
@@ -394,23 +399,6 @@ public class PropertyService implements DeclarePropertyService, InternalProperty
                 });
     }
 
-
-    private Either<ServiceError, FileDetail> helperUploadFile(Property property, FileUpload file) {
-        // 1. สร้าง FileDetail
-        Either<ServiceError, FileDetail> fileDetailResult = fileDetailService.createFileDetail(file, property.getCreatedBy().getId());
-        if (fileDetailResult.isLeft()) {
-            return Either.left(fileDetailResult.getLeft());
-        }
-        FileDetail fileDetail = fileDetailResult.getRight();
-
-        // 2. ผูกความสัมพันธ์
-        property.addFileDetail(fileDetail);
-
-        // 3. ส่งคืน FileDetail ที่สร้างขึ้น
-        return Either.right(fileDetail);
-
-    }
-
     private Either<ServiceError, Boolean> helperDeletePropertyWithRelationFile(UUID propertyId, UUID userId) {
         // 1. Find the property and its associated files
         Either<RepositoryError, Property> isPropertyExist = propertyRepository.findPropertyByIdAndUserId(propertyId, userId);
@@ -450,4 +438,65 @@ public class PropertyService implements DeclarePropertyService, InternalProperty
         return Either.right(true);
     }
 
+    @Override
+    public Either<ServiceError, Boolean> assignMemoToProperty(UUID memoId, UUID propertyId, UUID userId) {
+        // check is memo exist
+        // check is property exist
+        // assign memo to property
+        return memoService.findMemoByIdAndUserId(memoId, userId)
+                .mapLeft(memoError -> memoError)
+                .flatMapRight(foundedMemo -> {
+                   return propertyRepository.findPropertyByIdAndUserId(propertyId, userId)
+                           .mapRight(foundedProperty -> Pair.of(foundedMemo, foundedProperty))
+                           .mapLeft(propertyError -> new ServiceError.OperationFailed("Failed to check is property exist:" + propertyError.message()));
+                })
+                .flatMapRight(pair -> {
+                    Memo memo = pair.getLeft();
+                    Property property = pair.getRight();
+                    if(!property.getMemos().contains(memo)) {
+                        property.addMemo(memo);
+                        return Either.right(true);
+                    }
+                    return Either.right(false);
+                });
+    }
+
+    @Override
+    public Either<ServiceError, Boolean> removeMemoFromProperty(UUID memoId, UUID propertyId, UUID userId) {
+        // check is memo exist
+        // check is property exist
+        // remove property from memo
+        return memoService.findMemoByIdAndUserId(memoId, userId)
+                .mapLeft(memoError -> memoError)
+                .flatMapRight(foundedMemo -> {
+                    return propertyRepository.findPropertyByIdAndUserId(propertyId, userId)
+                            .mapRight(foundedProperty -> Pair.of(foundedMemo, foundedProperty))
+                            .mapLeft(propertyError -> new ServiceError.OperationFailed("Failed to check is property exist:" + propertyError.message()));
+                })
+                .flatMapRight(pair -> {
+                   Memo memo = pair.getLeft();
+                   Property property = pair.getRight();
+                   if(property.getMemos().contains(memo)) {
+                       property.removeMemo(memo);
+                       return Either.right(true);
+                   }
+                   return Either.right(false);
+                });
+    }
+
+    @Override
+    public Either<ServiceError, List<Memo>> findAllMemosByPropertyId(UUID propertyId, UUID userId) {
+        // check is property exist
+        // get all memo from property
+        return propertyRepository.findPropertyByIdAndUserId(propertyId, userId)
+                .flatMap(
+                        error -> {
+                            return Either.left(new ServiceError.OperationFailed("Error occurred while fetch property by id, cause by: " + error.message()));
+                        },
+                        targetFounded -> {
+                            List<Memo> resultMemo = targetFounded.getMemos().stream().toList();
+                            return Either.right(resultMemo);
+                        }
+                );
+    }
 }

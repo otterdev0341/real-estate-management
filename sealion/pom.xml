@@ -19,6 +19,9 @@
         <module>cloudFlare</module>
         <module>property</module>
         <module>memo</module>
+        <module>sale</module>
+        <module>transaction</module>
+        <module>payment</module>
     </modules>
 
     <properties>
