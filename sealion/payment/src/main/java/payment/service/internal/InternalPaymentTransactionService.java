@@ -17,6 +17,6 @@ public interface InternalPaymentTransactionService {
 
     Either<ServiceError, PaymentTransaction> findPaymentTransactionByIdAndUserId(UUID paymentTransactionId, UUID userId);
     Either<ServiceError, Boolean> deletePaymentTransactionById(UUID paymentTransactionId, UUID userId);
-    Either<ServiceError, List<PaymentTransaction>> findAlPaymentTransactionWithUserId(UUID userId, BaseQuery query);
+    Either<ServiceError, List<PaymentTransaction>> findAllPaymentTransactionWithUserId(UUID userId, BaseQuery query);
 
 }

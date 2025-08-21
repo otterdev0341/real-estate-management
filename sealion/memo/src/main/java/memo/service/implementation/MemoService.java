@@ -25,10 +25,7 @@ import memo.service.internal.InternalMemoService;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @ApplicationScoped
 @Named("memoService")
@@ -205,6 +202,7 @@ public class MemoService implements DeclareMemoService, InternalMemoService, Fil
                 .flatMapRight(pair -> {
                     User user = pair.getLeft();
                     MemoType memoType = pair.getRight();
+
                     Memo memo = Memo.builder()
                             .name(reqCreateMemo.getName().trim())
                             .detail(reqCreateMemo.getDetail())
@@ -212,33 +210,39 @@ public class MemoService implements DeclareMemoService, InternalMemoService, Fil
                             .createdBy(user)
                             .fileDetails(new HashSet<>())
                             .build();
-                    return memoRepository.createMemo(memo)
-                            .mapRight(persisted -> persisted)
-                            .mapLeft(error -> new ServiceError.PersistenceFailed("Failed to persist new memo reason by: " + error.message()));
 
-                })
-                .flatMapRight(persistedMemo -> {
+                    return Either.right(memo);
+
+                }).flatMapRight(prePersistMemo -> {
                     List<FileUpload> files = reqCreateMemo.getFiles();
-                    if (files.isEmpty()) {
-                        return Either.right(persistedMemo);
+
+                    // Check for null files first
+                    if (files.stream().anyMatch(Objects::isNull)) {
+                        return Either.left(new ServiceError.ValidationFailed("File to upload can't be null or empty"));
                     }
 
-                    // Use a stream to process all files and link them to the memo
-                    Either<ServiceError, Memo> result = Either.right(persistedMemo);
+                    // Stream and map each file to its upload result (Either)
+                    List<Either<ServiceError, FileDetail>> fileUploadResults = files.stream()
+                            .map(eachFile -> fileDetailService.helpPrePersistFileDetail(eachFile, userId))
+                            .toList();
 
-                    for (FileUpload file : files) {
-                        result = result.flatMapRight(currentMemo ->
-                                helperUploadFile(currentMemo, file)
-                                        .mapRight(fileDetail -> {
-                                            currentMemo.addFileDetail(fileDetail);
-                                            return currentMemo;
-                                        })
-                        );
+                    // Process the list of Either to handle errors and populate the transaction
+                    for (Either<ServiceError, FileDetail> result : fileUploadResults) {
+                        if (result.isLeft()) {
+                            return Either.left(result.getLeft());
+                        }
+                        prePersistMemo.addFileDetail(result.getRight());
                     }
 
-                    return result;
+                    return Either.right(prePersistMemo);
+                })
+                .flatMapRight(finalPrePersistMemo -> {
+                    return memoRepository.createMemo(finalPrePersistMemo)
+                            .mapRight(success -> success)
+                            .mapLeft(memoError -> (ServiceError) new ServiceError.OperationFailed("Failed to create new memo cause by:" + memoError.message()));
 
                 });
+
     }
 
     @Override

@@ -14,6 +14,7 @@ import property.domain.dto.property.form.ReqUpdatePropertyForm;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Mapper(
         componentModel = "cdi",
@@ -62,10 +63,15 @@ public interface PropertyMapper {
     ResListBaseDto<ResEntryPropertyDto> toResListBaseDto(String description, List<Property> items);
 
     // form converter
-    @Mapping(target = "propertyStatus", source = "status")
+
+
     ReqCreatePropertyDto tryFormToDto(ReqCreatePropertyForm formDto);
 
-    @Mapping(target = "propertyStatus", source = "status")
     ReqUpdatePropertyDto tryFormToDto(ReqUpdatePropertyForm formDto);
+
+    @Named("convertStringFormToUUID")
+    default UUID convertStringFormToUUID(String targetData) {
+        return targetData != null ? UUID.fromString(targetData) : null;
+    }
 
 }

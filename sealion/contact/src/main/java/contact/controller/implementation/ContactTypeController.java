@@ -117,6 +117,7 @@ public class ContactTypeController extends BaseController implements InternalCon
 
     @DELETE
     @Path("/{contactTypeId}")
+    @Transactional
     @Override
     public Response deleteContactType(
             @RequestBody(required = false)

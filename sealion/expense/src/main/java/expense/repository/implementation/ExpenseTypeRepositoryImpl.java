@@ -67,7 +67,7 @@ public class ExpenseTypeRepositoryImpl implements PanacheRepositoryBase<ExpenseT
             Optional<ExpenseType> expenseType = find("id = ?1 and createdBy.id = ?2", expenseTypeId, userId).firstResultOptional();
             return expenseType
                     .<Either<RepositoryError, ExpenseType>>map(Either::right)
-                    .orElseGet(() -> Either.left(new RepositoryError.NotFound("ExpenseType not found")));
+                    .orElseGet(() -> Either.left(new RepositoryError.NotFound("ExpenseType not found, in repository")));
         } catch (Exception e) {
             return Either.left(new RepositoryError.PersistenceFailed("Failed to find expenseType reason by :" + e.getMessage()));
         }

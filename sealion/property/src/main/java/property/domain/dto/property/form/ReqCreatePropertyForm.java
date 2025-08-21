@@ -45,9 +45,9 @@ public class ReqCreatePropertyForm {
     @PartType(MediaType.TEXT_PLAIN)
     private String fsp;
 
-    @RestForm("status")
+    @RestForm("propertyStatus")
     @PartType(MediaType.TEXT_PLAIN)
-    private String status;
+    private String propertyStatus;
 
     @RestForm("ownerBy")
     @PartType(MediaType.TEXT_PLAIN)

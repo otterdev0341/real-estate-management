@@ -68,7 +68,7 @@ public class ExpenseRepositoryImpl implements PanacheRepositoryBase<Expense, UUI
             Optional<Expense> isExpenseExist = find("id = ?1 and createdBy.id = ?2", expenseId, userId).firstResultOptional();
             return isExpenseExist
                     .<Either<RepositoryError, Expense>>map(Either::right)
-                    .orElseGet(() -> Either.left(new RepositoryError.NotFound("Expense not found")));
+                    .orElseGet(() -> Either.left(new RepositoryError.NotFound("Expense not found, in repository")));
         } catch (Exception e) {
             return Either.left(new RepositoryError.PersistenceFailed("Failed to find expense"));
         }

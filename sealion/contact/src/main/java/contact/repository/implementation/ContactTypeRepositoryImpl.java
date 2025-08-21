@@ -138,7 +138,7 @@ public class ContactTypeRepositoryImpl implements PanacheRepositoryBase<ContactT
             delete(isContactExist.get());
             return Either.right(true);
         } catch (Exception e) {
-            return Either.left(new RepositoryError.PersistenceFailed("Failed to delete contactType"));
+            return Either.left(new RepositoryError.PersistenceFailed("Failed to delete contactType" + e.getMessage()));
         }
     }
 }

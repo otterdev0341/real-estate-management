@@ -81,15 +81,11 @@ public class Memo extends BaseTime implements HasFileDetails {
     private User createdBy;
 
     // relation
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-            name = "memo_file_detail",
-            joinColumns = @JoinColumn(name = "memo_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "file_detail_id", referencedColumnName = "id"),
-            uniqueConstraints = @UniqueConstraint(
-                    name = "uq_memo_file_detail",
-                    columnNames = {"memo_id", "file_detail_id"}
-            )
+            name = "memo_file_details",
+            joinColumns = @JoinColumn(name = "memo_id"),
+            inverseJoinColumns = @JoinColumn(name = "file_detail_id")
     )
     @ToString.Exclude
     @Builder.Default

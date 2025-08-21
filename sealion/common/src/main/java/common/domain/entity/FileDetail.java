@@ -96,17 +96,7 @@ public class FileDetail extends BaseTime {
     @JsonBackReference
     private Set<Property> properties = new HashSet<>();
 
-    @ManyToMany
-    @JoinTable(
-            name = "memo_file_detail",
-            joinColumns = @JoinColumn(name = "memo_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "file_detail_id", referencedColumnName = "id"),
-            uniqueConstraints = @UniqueConstraint(
-                    name = "uq_memo_file_detail",
-                    columnNames = {"memo_id", "file_detail_id"}
-            )
-    )
-    @JsonIgnoreProperties("fileDetails")
+    @ManyToMany(mappedBy = "fileDetails", fetch = FetchType.LAZY)
     @ToString.Exclude
     @Builder.Default
     @JsonBackReference

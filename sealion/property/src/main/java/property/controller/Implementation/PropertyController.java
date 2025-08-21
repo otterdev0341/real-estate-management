@@ -379,7 +379,7 @@ public class PropertyController extends BaseController implements InternalProper
     }
 
     @PUT
-    @Path("/{propertyId}/assign/propertyType")
+    @Path("/{propertyId}/assign/property-type")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional

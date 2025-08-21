@@ -4,17 +4,27 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.util.Optional;
+import java.util.UUID;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReqCreatePaymentItemDto {
 
-    private String id;
+    private UUID id;
 
-    private String expense;
+    private UUID expense;
 
-    private String amount;
+    private BigDecimal amount;
 
-    private String price;
+    private BigDecimal price;
 
+    public Optional<BigDecimal> getTotal() {
+        if (this.amount != null && this.price != null) {
+            return Optional.of(this.amount.multiply(this.price));
+        }
+        return Optional.empty();
+    }
 }

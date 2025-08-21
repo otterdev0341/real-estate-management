@@ -6,7 +6,9 @@ import lombok.NoArgsConstructor;
 import payment.domain.dto.item.ReqCreatePaymentItemDto;
 import payment.domain.dto.item.ReqUpdatePaymentItemDto;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
@@ -15,11 +17,11 @@ public class ReqUpdatePaymentDto {
 
     private String note;
 
-    private String createdAt;
+    private LocalDateTime createdAt;
 
-    private String contact;
+    private UUID contact;
 
-    private String property;
+    private UUID property;
 
     private List<ReqUpdatePaymentItemDto> items;
 

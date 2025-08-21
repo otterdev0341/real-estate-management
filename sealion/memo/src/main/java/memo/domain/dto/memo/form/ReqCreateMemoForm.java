@@ -38,6 +38,5 @@ public class ReqCreateMemoForm {
 
     @RestForm("files")
     @PartType(MediaType.APPLICATION_OCTET_STREAM)
-    @Size(max = 7, message = "Maximum 7 files allowed")
     private List<FileUpload> files;
 }
