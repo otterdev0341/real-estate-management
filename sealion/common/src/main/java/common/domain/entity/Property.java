@@ -132,7 +132,7 @@ public class Property extends BaseTime {
     private User createdBy;
     
     //relation
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "property_property_types",
             joinColumns = @JoinColumn(name = "property_id"),
@@ -145,7 +145,7 @@ public class Property extends BaseTime {
     private Set<PropertyType> propertyTypes = new HashSet<>();
 
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "property_file_details",
             joinColumns = @JoinColumn(name = "property_id"),
@@ -155,7 +155,7 @@ public class Property extends BaseTime {
     @Builder.Default
     private Set<FileDetail> fileDetails = new HashSet<>();
 
-    @ManyToMany(mappedBy = "properties", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "properties", fetch = FetchType.EAGER)
     @ToString.Exclude
     @JsonIgnoreProperties("properties") // Prevent circular reference
     private Set<Memo> memos = new HashSet<>();

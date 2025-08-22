@@ -95,14 +95,19 @@ public class PaymentTransactionRepositoryImpl implements PanacheRepositoryBase<P
     @Override
     public Either<RepositoryError, Boolean> deletePaymentTransactionById(UUID paymentTransactionId, UUID userId) {
         try {
-            Optional<PaymentTransaction> property = find("id = ?1 and transaction.createdBy.id = ?2", paymentTransactionId, userId).firstResultOptional();
-            if (property.isPresent()) {
-                delete(property.get());
+            Optional<PaymentTransaction> transactionOpt = find("id = ?1 and transaction.createdBy.id = ?2", paymentTransactionId, userId).firstResultOptional();
+
+            if (transactionOpt.isPresent()) {
+                PaymentTransaction transaction = transactionOpt.get();
+                entityManager.remove(transaction);
                 return Either.right(true);
-            } else {
-                return Either.right(false);
             }
+
+            // No matching transaction found, so nothing was deleted.
+            return Either.right(false);
+
         } catch (Exception e) {
+            // Return a more specific error, e.g., if a transaction is still active.
             return Either.left(new RepositoryError.PersistenceFailed("Failed to delete payment transaction: " + e.getMessage()));
         }
     }

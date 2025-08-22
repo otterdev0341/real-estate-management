@@ -37,7 +37,7 @@ public class TransactionTypeRepositoryImpl implements PanacheRepositoryBase<Tran
     @Override
     public Either<RepositoryError, TransactionType> getInvestmentTransactionType() {
         try {
-            Optional<TransactionType> transactionTypeOptional = find("detail = ?1", transactionType.investment).firstResultOptional();
+            Optional<TransactionType> transactionTypeOptional = find("detail = ?1", transactionType.investment.toString()).firstResultOptional();
             return transactionTypeOptional
                     .<Either<RepositoryError, TransactionType>>map(Either::right)
                     .orElseGet(() -> Either.left(new RepositoryError.NotFound("Investment transaction type not found")));
@@ -50,7 +50,7 @@ public class TransactionTypeRepositoryImpl implements PanacheRepositoryBase<Tran
     @Override
     public Either<RepositoryError, TransactionType> getPaymentTransactionType() {
         try {
-            Optional<TransactionType> transactionTypeOptional = find("detail = ?1", transactionType.payment).firstResultOptional();
+            Optional<TransactionType> transactionTypeOptional = find("detail = ?1", transactionType.payment.toString()).firstResultOptional();
             return transactionTypeOptional
                     .<Either<RepositoryError, TransactionType>>map(Either::right)
                     .orElseGet(() -> Either.left(new RepositoryError.NotFound("Investment transaction type not found")));

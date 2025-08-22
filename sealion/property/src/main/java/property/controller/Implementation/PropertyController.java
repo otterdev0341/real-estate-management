@@ -498,7 +498,7 @@ public class PropertyController extends BaseController implements InternalProper
 
 
     @DELETE
-    @Path("/{memoId}/{propertyId}")
+    @Path("remove-memo/{memoId}/{propertyId}")
     @Transactional
     @Operation(description = "remove memo from property", summary = "remove memo from property")
     @Override

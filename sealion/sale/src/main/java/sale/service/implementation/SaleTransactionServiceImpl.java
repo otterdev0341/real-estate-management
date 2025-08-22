@@ -131,6 +131,7 @@ public class SaleTransactionServiceImpl implements InternalSaleTransactionServic
 
                 })
                 .flatMapRight(pair -> {
+                    pair.getLeft().setSold(true);
                     return transactionService.getTransactionPrePersist(TransactionChoice.sale, userId, reqCreateSaleDto.getNote())
                             .mapRight(transaction -> {
                                 SaleTransaction saleTransaction;
@@ -222,13 +223,18 @@ public class SaleTransactionServiceImpl implements InternalSaleTransactionServic
 
     @Override
     public Either<ServiceError, Boolean> deleteSaleTransaction(UUID saleTransactionId, UUID userId) {
-        return saleRepository.deleteSaleTransactionByIdAndUserId(saleTransactionId, userId)
-                .fold(
-                        error -> {
-                            return Either.left(new ServiceError.OperationFailed("Error occurred while delete sale transaction, cause by: " + error.message()));
-                        },
-                        Either::right
-                );
+        // find sale transaction,
+        // get property id
+        // set sold to false
+        return saleRepository.findSaleTransactionByIdAndUserId(saleTransactionId,userId)
+                .mapLeft(saleTransactionErrorCase -> (ServiceError) new ServiceError.OperationFailed("failed to find sale transaction case by :" + saleTransactionErrorCase.message()))
+                .flatMapRight(foundedSaleTransaction -> {
+                    foundedSaleTransaction.getProperty().setSold(false);
+                    return saleRepository.deleteSaleTransactionByIdAndUserId(saleTransactionId, userId)
+                            .mapRight(success -> success)
+                            .mapLeft(deleteError -> (ServiceError) new ServiceError.OperationFailed("failed to delete sale transaction case by :" + deleteError.message()));
+                });
+
     }
 
     @Override

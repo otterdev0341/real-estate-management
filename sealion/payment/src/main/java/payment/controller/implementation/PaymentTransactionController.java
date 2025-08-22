@@ -2,6 +2,7 @@ package payment.controller.implementation;
 
 import com.spencerwi.either.Either;
 import common.controller.base.BaseController;
+import common.domain.dto.base.ResListBaseDto;
 import common.domain.dto.fileDetail.RequestAttachFile;
 import common.domain.dto.query.BaseQuery;
 import common.domain.entity.FileDetail;
@@ -202,7 +203,15 @@ public class PaymentTransactionController extends BaseController implements Inte
                                     .build();
                         },
                         success -> {
-                            return Response.ok(success).build();
+                            SuccessResponse<?> successResponse = new SuccessResponse<>(
+                                    "Payments retrieved successfully",
+                                    success
+                            );
+                            return Response
+                                    .status(Response.Status.OK)
+                                    .entity(successResponse)
+                                    .build();
+
                         }
                 );
     }

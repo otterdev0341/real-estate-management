@@ -467,7 +467,7 @@ public class PropertyService implements DeclarePropertyService, InternalProperty
         // check is property exist
         // remove property from memo
         return memoService.findMemoByIdAndUserId(memoId, userId)
-                .mapLeft(memoError -> memoError)
+                .mapLeft(memoError -> (ServiceError) new ServiceError.OperationFailed("Failed to check is memo exist:" + memoError.message()))
                 .flatMapRight(foundedMemo -> {
                     return propertyRepository.findPropertyByIdAndUserId(propertyId, userId)
                             .mapRight(foundedProperty -> Pair.of(foundedMemo, foundedProperty))

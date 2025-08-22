@@ -16,7 +16,9 @@ import contact.service.declare.DeclareContactService;
 import expense.service.declare.DeclareExpenseService;
 import fileDetail.service.implementation.FileDetailService;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.persistence.EntityManager;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import payment.domain.dto.item.ReqCreatePaymentItemDto;
@@ -29,9 +31,7 @@ import property.service.declare.DeclarePropertyService;
 import transaction.entity.choice.TransactionChoice;
 import transaction.service.implementation.TransactionService;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 
 @ApplicationScoped
@@ -154,22 +154,25 @@ public class PaymentTransactionService implements InternalPaymentTransactionServ
         PaymentTransaction paymentTransaction = paymentTransactionCase.getRight();
 
         // 2 : add payment transaction item
-        Either<ServiceError, PaymentTransaction> assignPaymentTransactionItemCase = helpCreatePaymentTransactionItems(
+        Either<ServiceError, List<PaymentItem>> assignPaymentTransactionItemCase = helpCreatePaymentTransactionItems(
                 reqCreatePaymentWrapperForm.getData().getItems(),
-                paymentTransaction,
                 userId
         );
         if (assignPaymentTransactionItemCase.isLeft()) return Either.left(new ServiceError.OperationFailed("Failed to assign payment transaction items, cause by: " + assignPaymentTransactionItemCase.getLeft().message()));
-        paymentTransaction = assignPaymentTransactionItemCase.getRight();
+        for (PaymentItem item : assignPaymentTransactionItemCase.getRight()) {
+            item.setPayment(paymentTransaction);
+            paymentTransaction.getExpenseItems().add(item);
+        }
 
         // 3 : loop through file details and attach them to payment transaction
-        Either<ServiceError, PaymentTransaction> paymentTransactionFileUploadCase = helpUploadFileDetails(
-                paymentTransaction,
+        Either<ServiceError, List<FileDetail>> paymentTransactionFileUploadCase = helpUploadFileDetails(
                 reqCreatePaymentWrapperForm.getFiles(),
                 userId
         );
         if (paymentTransactionFileUploadCase.isLeft()) return Either.left(new ServiceError.OperationFailed("Failed to upload file details, cause by: " + paymentTransactionFileUploadCase.getLeft().message()));
-        paymentTransaction = paymentTransactionFileUploadCase.getRight();
+        for (FileDetail eachFileDetail : paymentTransactionFileUploadCase.getRight()) {
+            paymentTransaction.getFileDetails().add(eachFileDetail);
+        }
 
         return paymentTransactionRepository.createNewPaymentTransaction(paymentTransaction)
                 .fold(
@@ -208,16 +211,17 @@ public class PaymentTransactionService implements InternalPaymentTransactionServ
                         .property(property)
                         .contact(contact)
                         .transaction(transaction)
+                        .expenseItems(new ArrayList<>())
+                        .fileDetails(new HashSet<>())
                         .build()
         );
     }
 
-    private Either<ServiceError, PaymentTransaction> helpCreatePaymentTransactionItems(
+    private Either<ServiceError, List<PaymentItem>> helpCreatePaymentTransactionItems(
             List<ReqCreatePaymentItemDto> paymentItemList,
-            PaymentTransaction paymentTransaction,
             UUID userId
     ) {
-
+        List<PaymentItem> itemList = new ArrayList<>();
         // each item in paymentItemList check expense : get expense object
         // if expense not found, return error
         // if expense found, add to payment transaction item list
@@ -230,24 +234,25 @@ public class PaymentTransactionService implements InternalPaymentTransactionServ
                     .amount(item.getAmount())
                     .price(item.getPrice())
                     .build();
-            paymentTransaction.getExpenseItems().add(tempPaymentItem);
+            itemList.add(tempPaymentItem);
 
         } // end for
-        return Either.right(paymentTransaction);
+        return Either.right(itemList);
     }
 
-    private Either<ServiceError, PaymentTransaction> helpUploadFileDetails(PaymentTransaction paymentTransaction, List<FileUpload> fileUploads, UUID userId) {
+    private Either<ServiceError, List<FileDetail>> helpUploadFileDetails(List<FileUpload> fileUploads, UUID userId) {
         // loop through file uploads
         // call file detail service to create file detail
         // add file detail to payment transaction
+        List<FileDetail> fileDetailsList = new ArrayList<>();
         for (FileUpload fileUpload : fileUploads) {
             if (fileUpload == null) return Either.left(new ServiceError.ValidationFailed("File to upload can't be null or empty"));
             Either<ServiceError, FileDetail> uploadFileCase = fileDetailService.helpPrePersistFileDetail(fileUpload, userId);
             if (uploadFileCase.isLeft()) return Either.left(new ServiceError.OperationFailed("Failed to upload file, cause by: " + uploadFileCase.getLeft().message()));
             FileDetail fileDetail = uploadFileCase.getRight();
-            paymentTransaction.addFileDetail(fileDetail);
+            fileDetailsList.add(fileDetail);
         }
-        return Either.right(paymentTransaction);
+        return Either.right(fileDetailsList);
     }
 
 
