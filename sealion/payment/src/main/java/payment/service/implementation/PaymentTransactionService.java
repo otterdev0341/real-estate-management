@@ -318,7 +318,8 @@ public class PaymentTransactionService implements InternalPaymentTransactionServ
                 // case 1: id is null, create new payment item
                 Either<ServiceError, PaymentItem> newPaymentItemCase = helpUpdatePaymentItemCaseNullId(reqUpdatePaymentItemDto, userId);
                 if (newPaymentItemCase.isLeft()) return Either.left(new ServiceError.OperationFailed("Failed to create new payment item, cause by: " + newPaymentItemCase.getLeft().message()));
-                paymentTransaction.getExpenseItems().add(newPaymentItemCase.getRight());
+                PaymentItem newPaymentItem = newPaymentItemCase.getRight();
+                paymentTransaction.getExpenseItems().add(newPaymentItem);
             } else {
                 // case 2: id exist, update payment item
                 Either<ServiceError, PaymentItem> updatedPaymentItemCase = helpUpdatePaymentItemCaseIdExist(reqUpdatePaymentItemDto, paymentTransaction, userId);

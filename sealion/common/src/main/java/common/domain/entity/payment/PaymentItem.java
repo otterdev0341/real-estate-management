@@ -1,5 +1,6 @@
 package common.domain.entity.payment;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import common.domain.entity.Expense;
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,6 +22,7 @@ public class PaymentItem {
 
     @ManyToOne
     @JoinColumn(name = "payment_transaction_id")
+    @JsonBackReference
     private PaymentTransaction payment;
 
     @ManyToOne

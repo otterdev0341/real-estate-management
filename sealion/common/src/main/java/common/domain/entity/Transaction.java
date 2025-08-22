@@ -1,5 +1,6 @@
 package common.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import common.domain.entity.base.BaseTime;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,12 +25,13 @@ public class Transaction extends BaseTime {
     @Column(nullable = false)
     private String note;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "transaction_type", nullable = false)
     private TransactionType transactionType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "created_by")
+    @JsonIgnoreProperties({"password", "contact", "role", "gender", "email","firstName", "lastName", "dob"})
     private User createdBy;
 
 }

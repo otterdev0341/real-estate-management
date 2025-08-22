@@ -1,6 +1,8 @@
 package common.domain.entity.payment;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import common.domain.entity.Contact;
 import common.domain.entity.FileDetail;
 import common.domain.entity.Property;
@@ -26,6 +28,7 @@ public class PaymentTransaction {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "transaction", nullable = false)
+    @JsonIgnoreProperties("payment_transactions")
     private Transaction transaction;
 
     @ManyToOne
@@ -37,16 +40,18 @@ public class PaymentTransaction {
     private Contact contact;
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     @Builder.Default
     private List<PaymentItem> expenseItems = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "payment_file_details",
             joinColumns = @JoinColumn(name = "payment_transaction_id"),
             inverseJoinColumns = @JoinColumn(name = "file_detail_id")
     )
     @ToString.Exclude
+    @JsonManagedReference
     @Builder.Default
     private Set<FileDetail> fileDetails = new HashSet<>();
 
