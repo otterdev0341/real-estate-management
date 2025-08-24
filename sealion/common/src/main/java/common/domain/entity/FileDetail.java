@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import common.domain.entity.base.BaseTime;
+import common.domain.entity.investment.InvestmentTransaction;
 import common.domain.entity.payment.PaymentTransaction;
 import jakarta.persistence.*;
 import lombok.*;
@@ -113,6 +114,12 @@ public class FileDetail extends BaseTime {
     @Builder.Default
     @JsonBackReference
     private Set<PaymentTransaction> paymentTransactions = new HashSet<>();
+
+    @ManyToMany(mappedBy = "fileDetails", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @Builder.Default
+    @JsonBackReference
+    private Set<InvestmentTransaction> investmentTransactions = new HashSet<>();
 
     // method
 

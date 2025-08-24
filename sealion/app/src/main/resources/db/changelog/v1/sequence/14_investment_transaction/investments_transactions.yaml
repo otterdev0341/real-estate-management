@@ -28,32 +28,11 @@ databaseChangeLog:
                     nullable: false
 
               - column:
-                  name: note
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
-
-              - column:
                   name: property
                   type: UUID
                   constraints:
                     nullable: false
 
-              - column:
-                  name: created_by
-                  type: UUID
-
-              - column:
-                  name: created_at
-                  type: timestamp
-                  constraints:
-                    nullable: false
-
-              - column:
-                  name: updated_at
-                  type: timestamp
-                  constraints:
-                    nullable: false
 
         - createIndex:
             tableName: invest_transactions

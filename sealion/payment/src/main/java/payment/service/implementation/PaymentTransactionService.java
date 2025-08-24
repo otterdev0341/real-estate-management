@@ -290,6 +290,8 @@ public class PaymentTransactionService implements InternalPaymentTransactionServ
             Contact updatedContact = updatedContactCase.getRight();
             paymentTransaction.setContact(updatedContact);
         }
+        // if old created not the same as update created
+
         // if property not the same as update property
         if (!paymentTransaction.getProperty().getId().equals(reqUpdatePaymentWrapperForm.getData().getProperty())) {
             Either<ServiceError, Property> updatedPropertyCase = propertyService.findPropertyByIdAndUserId(reqUpdatePaymentWrapperForm.getData().getProperty(), userId);
