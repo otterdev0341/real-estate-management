@@ -6,6 +6,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.util.List;
+
 @Mapper(componentModel = "cdi")
 public interface FileDetailMapper {
 
@@ -24,4 +26,6 @@ public interface FileDetailMapper {
         if (size < 1024 * 1024) return (size / 1024) + " KB";
         return (size / (1024 * 1024)) + " MB";
     }
+
+    List<ResEntryFileDetailDto> toDto(List<FileDetail> fileDetails);
 }

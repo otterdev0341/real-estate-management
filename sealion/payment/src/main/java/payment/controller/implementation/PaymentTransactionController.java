@@ -6,6 +6,7 @@ import common.domain.dto.base.ResListBaseDto;
 import common.domain.dto.fileDetail.RequestAttachFile;
 import common.domain.dto.query.BaseQuery;
 import common.domain.entity.FileDetail;
+import common.domain.mapper.FileDetailMapper;
 import common.response.ErrorResponse;
 import common.response.SuccessResponse;
 import common.service.declare.fileAssetManagement.FileAssetManagementService;
@@ -25,8 +26,10 @@ import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 import org.eclipse.microprofile.openapi.annotations.security.SecuritySchemes;
 import payment.controller.internal.InternalPaymentController;
+import payment.domain.dto.payment.ResEntryPaymentDto;
 import payment.domain.dto.wrapper.ReqCreatePaymentWrapperForm;
 import payment.domain.dto.wrapper.ReqUpdatePaymentWrapperForm;
+import payment.domain.mapper.PaymentMapper;
 import payment.service.internal.InternalPaymentTransactionService;
 
 import java.util.List;
@@ -48,13 +51,19 @@ public class PaymentTransactionController extends BaseController implements Inte
 
     private final InternalPaymentTransactionService paymentTransactionService;
     private final FileAssetManagementService fileAssetManagementService;
+    private final PaymentMapper paymentMapper;
+    private final FileDetailMapper fileDetailMapper;
 
     public PaymentTransactionController(
             @Named("paymentTransactionService") InternalPaymentTransactionService paymentTransactionService,
-            @Named("paymentTransactionService") FileAssetManagementService fileAssetManagementService
+            @Named("paymentTransactionService") FileAssetManagementService fileAssetManagementService,
+            PaymentMapper paymentMapper,
+            FileDetailMapper fileDetailMapper
     ) {
         this.paymentTransactionService = paymentTransactionService;
         this.fileAssetManagementService = fileAssetManagementService;
+        this.paymentMapper = paymentMapper;
+        this.fileDetailMapper = fileDetailMapper;
     }
 
 
@@ -80,8 +89,12 @@ public class PaymentTransactionController extends BaseController implements Inte
                                     .build();
                         },
                         success -> {
+                            SuccessResponse<ResEntryPaymentDto> successResponse = new SuccessResponse<>(
+                                "payment record create successfully",
+                                paymentMapper.toDto(success)
+                            );
                             return Response.status(Response.Status.CREATED)
-                                    .entity(success)
+                                    .entity(successResponse)
                                     .build();
                         }
                 );
@@ -107,10 +120,16 @@ public class PaymentTransactionController extends BaseController implements Inte
                                     .build();
                         },
                         success -> {
-                            return Response.ok(success).build();
+                            SuccessResponse<ResEntryPaymentDto> successResponse = new SuccessResponse<>(
+                                    "Payment retrieved successfully",
+                                    paymentMapper.toDto(success)
+                            );
+                            return Response.ok(successResponse).build();
                         }
                 );
     }
+
+
 
 
 
@@ -140,6 +159,8 @@ public class PaymentTransactionController extends BaseController implements Inte
                         }
                 );
     }
+
+
 
 
     @DELETE
@@ -176,9 +197,9 @@ public class PaymentTransactionController extends BaseController implements Inte
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get all payments by property ID", description = "This endpoint retrieves all payments associated with a specific property ID.")
+    @Operation(summary = "Get all payments", description = "This endpoint retrieves all payments associated with a specific property ID.")
     @Override
-    public Response getAllPaymentByPropertyId(
+    public Response getAllPayment(
             @RequestBody(required = false)
             @Parameter(description = "to use with pagination", example = "") @QueryParam("page") Integer page,
             @Parameter(description = "to use with pagination", example = "") @QueryParam("size") Integer size,
@@ -205,7 +226,7 @@ public class PaymentTransactionController extends BaseController implements Inte
                         success -> {
                             SuccessResponse<?> successResponse = new SuccessResponse<>(
                                     "Payments retrieved successfully",
-                                    success
+                                    paymentMapper.toDtoList(success)
                             );
                             return Response
                                     .status(Response.Status.OK)
@@ -310,9 +331,9 @@ public class PaymentTransactionController extends BaseController implements Inte
                             return Response.status(errorResponse.getStatusCode()).entity(errorResponse).build();
                         },
                         success -> {
-                            SuccessResponse<List<FileDetail>> successResponse = new SuccessResponse<>(
+                            SuccessResponse<?> successResponse = new SuccessResponse<>(
                                     "file retrieved successfully",
-                                    success
+                                    fileDetailMapper.toDto(success)
                             );
                             return Response
                                     .status(Response.Status.OK)

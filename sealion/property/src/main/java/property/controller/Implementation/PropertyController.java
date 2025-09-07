@@ -410,11 +410,11 @@ public class PropertyController extends BaseController implements InternalProper
     }
 
     @GET
-    @Path("/{propertyId}/propertyType")
+    @Path("/{propertyId}/property-type")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "fetch all property type from property", summary = "get all property type relate by propertyId")
     @Override
-    public Response findAllPropertyTypesByPropertyId(@RequestBody(required = false) @PathParam("propertyId") UUID propertyId) {
+    public Response findAllPropertyTypesByPropertyId(@PathParam("propertyId") UUID propertyId) {
         UUID userId = getCurrentUserIdOrThrow();
         return propertyService.findAllPropertyTypesByPropertyId(propertyId, userId)
                 .fold(

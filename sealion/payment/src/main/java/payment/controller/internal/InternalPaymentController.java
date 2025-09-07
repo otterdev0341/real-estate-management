@@ -17,9 +17,11 @@ public interface InternalPaymentController extends FileAssetManagementController
 
     Response updatePayment(@Valid ReqUpdatePaymentWrapperForm reqUpdatePaymentWrapperForm, UUID paymentId);
 
+
+
     Response deletePayment(UUID paymentId);
 
-    Response getAllPaymentByPropertyId(
+    Response getAllPayment(
             @QueryParam("page") Integer page,
             @QueryParam("size") Integer size,
             @QueryParam("sortBy") String sortBy,

@@ -7,6 +7,7 @@ import common.domain.dto.fileDetail.RequestAttachFile;
 import common.domain.dto.fileDetail.ResEntryFileDetailDto;
 import common.domain.dto.query.BaseQuery;
 import common.domain.entity.FileDetail;
+import common.domain.mapper.FileDetailMapper;
 import common.response.ErrorResponse;
 import common.response.SuccessResponse;
 import common.service.declare.fileAssetManagement.FileAssetManagementService;
@@ -55,16 +56,19 @@ public class SaleTransactionController extends BaseController implements Interna
     private final InternalSaleTransactionService saleTransactionService;
     private final FileAssetManagementService fileAssetManagementService;
     private final SaleMapper saleMapper;
+    private final FileDetailMapper fileDetailMapper;
 
     @Inject
     public SaleTransactionController(
             @Named("saleTransactionService") InternalSaleTransactionService saleTransactionService,
             @Named("saleTransactionService") FileAssetManagementService fileAssetManagementService,
-            SaleMapper saleMapper
+            SaleMapper saleMapper,
+            FileDetailMapper fileDetailMapper
     ) {
         this.saleTransactionService = saleTransactionService;
         this.fileAssetManagementService = fileAssetManagementService;
         this.saleMapper = saleMapper;
+        this.fileDetailMapper = fileDetailMapper;
     }
 
 
@@ -326,9 +330,9 @@ public class SaleTransactionController extends BaseController implements Interna
                             return Response.status(errorResponse.getStatusCode()).entity(errorResponse).build();
                         },
                         success -> {
-                            SuccessResponse<List<FileDetail>> successResponse = new SuccessResponse<>(
+                            SuccessResponse<?> successResponse = new SuccessResponse<>(
                                     "file retrieved successfully",
-                                    success
+                                    fileDetailMapper.toDto(success)
                             );
                             return Response
                                     .status(Response.Status.OK)

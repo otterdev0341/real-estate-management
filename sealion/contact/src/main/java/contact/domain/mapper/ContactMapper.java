@@ -14,11 +14,11 @@ import java.util.List;
 @Mapper(componentModel = "cdi")
 public interface ContactMapper {
 
-    @Mapping(source = "createdBy", target = "createdBy", qualifiedByName = "mapCreatedByUsername")
+    @Mapping(source = "createdBy", target = "createdBy", qualifiedByName = "contactCreatedByUsername")
     @Mapping(source = "contactType", target = "contactType", qualifiedByName = "mapContactTypeDetail")
     ResEntryContactDto toDto(Contact contact);
 
-    @Named("mapCreatedByUsername")
+    @Named("contactCreatedByUsername")
     default String mapCreatedByUsername(User createdBy) {
         return createdBy != null ? createdBy.getUsername() : null;
     }

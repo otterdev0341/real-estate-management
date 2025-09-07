@@ -18,10 +18,10 @@ import org.mapstruct.Named;
 @Mapper(componentModel = "cdi")
 public interface ContactTypeMapper {
 
-    @Mapping(source = "createdBy", target = "createdBy", qualifiedByName = "mapCreatedByUsername")
+    @Mapping(source = "createdBy", target = "createdBy", qualifiedByName = "contactTypeCreatedByUsername")
     ResEntryContactTypeDto toDto(ContactType contactType);
 
-    @Named("mapCreatedByUsername")
+    @Named("contactTypeCreatedByUsername")
     default String mapCreatedByUsername(User createdBy) {
         return createdBy != null ? createdBy.getUsername() : null;
     }

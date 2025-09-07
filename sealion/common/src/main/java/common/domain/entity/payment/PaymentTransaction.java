@@ -7,6 +7,7 @@ import common.domain.entity.Contact;
 import common.domain.entity.FileDetail;
 import common.domain.entity.Property;
 import common.domain.entity.Transaction;
+import common.domain.entity.base.BaseTime;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
@@ -20,7 +21,7 @@ import java.util.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PaymentTransaction {
+public class PaymentTransaction extends BaseTime {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
