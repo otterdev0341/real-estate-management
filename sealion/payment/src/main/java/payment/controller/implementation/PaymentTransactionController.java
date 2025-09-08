@@ -140,7 +140,7 @@ public class PaymentTransactionController extends BaseController implements Inte
     @Transactional
     @Operation(summary = "Update payment", description = "This endpoint allows updating an existing payment with the provided details.")
     @Override
-    public Response updatePayment(@Valid ReqUpdatePaymentWrapperForm reqUpdatePaymentWrapperForm, @PathParam("paymentId") UUID paymentId) {
+    public Response updatePayment(@BeanParam @Valid ReqUpdatePaymentWrapperForm reqUpdatePaymentWrapperForm, @PathParam("paymentId") UUID paymentId) {
         UUID userId = getCurrentUserIdOrThrow();
         return paymentTransactionService.updatePaymentTransaction(reqUpdatePaymentWrapperForm, paymentId, userId)
                 .fold(
@@ -155,7 +155,11 @@ public class PaymentTransactionController extends BaseController implements Inte
                                     .build();
                         },
                         success -> {
-                            return Response.ok(success).build();
+                            SuccessResponse<ResEntryPaymentDto> successResponse = new SuccessResponse<>(
+                                    "Payment updated successfully",
+                                    paymentMapper.toDto(success)
+                            );
+                            return Response.ok(successResponse).build();
                         }
                 );
     }

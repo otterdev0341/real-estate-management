@@ -313,21 +313,52 @@ public class PaymentTransactionService implements InternalPaymentTransactionServ
             List<ReqUpdatePaymentItemDto> reqUpdatePaymentItemDtoList,
             UUID userId
     ) {
-        // if id is null, check expense and add new item to payment transaction
-        // if it has id, find item with id check expense and update it
-        for (ReqUpdatePaymentItemDto reqUpdatePaymentItemDto : reqUpdatePaymentItemDtoList) {
-            if (reqUpdatePaymentItemDto.getId() == null) {
-                // case 1: id is null, create new payment item
-                Either<ServiceError, PaymentItem> newPaymentItemCase = helpUpdatePaymentItemCaseNullId(reqUpdatePaymentItemDto, userId);
-                if (newPaymentItemCase.isLeft()) return Either.left(new ServiceError.OperationFailed("Failed to create new payment item, cause by: " + newPaymentItemCase.getLeft().message()));
-                PaymentItem newPaymentItem = newPaymentItemCase.getRight();
-                paymentTransaction.getExpenseItems().add(newPaymentItem);
-            } else {
-                // case 2: id exist, update payment item
-                Either<ServiceError, PaymentItem> updatedPaymentItemCase = helpUpdatePaymentItemCaseIdExist(reqUpdatePaymentItemDto, paymentTransaction, userId);
-                if (updatedPaymentItemCase.isLeft()) return Either.left(new ServiceError.OperationFailed("Failed to update payment item with ID: " + reqUpdatePaymentItemDto.getId() + ", cause by: " + updatedPaymentItemCase.getLeft().message()));
+        // สร้าง List ใหม่เพื่อเก็บ items ที่จะถูกอัปเดตหรือสร้างใหม่
+        List<PaymentItem> updatedItems = new ArrayList<>();
+
+        // วนลูปรายการที่ส่งเข้ามาเพื่อ "สร้าง" หรือ "อัปเดต"
+        for (ReqUpdatePaymentItemDto itemDto : reqUpdatePaymentItemDtoList) {
+            // กรณีเป็น item ใหม่ (ID เป็น null หรือค่าว่าง)
+            if (itemDto.getId() == null) {
+                Either<ServiceError, PaymentItem> newItemCase = helpUpdatePaymentItemCaseNullId(itemDto, userId);
+                if (newItemCase.isLeft()) {
+                    return Either.left(new ServiceError.OperationFailed("Failed to create new payment item: " + newItemCase.getLeft().message()));
+                }
+                updatedItems.add(newItemCase.getRight());
+            }
+            // กรณีเป็น item ที่มีอยู่แล้ว (มี ID)
+            else {
+                // ค้นหา item เดิมจาก transaction
+                Optional<PaymentItem> existingItemOpt = paymentTransaction.getExpenseItems().stream()
+                        .filter(p -> p.getId().equals(itemDto.getId()))
+                        .findFirst();
+
+                if (existingItemOpt.isEmpty()) {
+                    return Either.left(new ServiceError.NotFound("Payment item with ID " + itemDto.getId() + " not found for update."));
+                }
+
+                PaymentItem existingItem = existingItemOpt.get();
+                // อัปเดตข้อมูล item ที่มีอยู่
+                Either<ServiceError, Expense> expenseCase = expenseService.findExpenseByIdAndUserId(itemDto.getExpense(), userId);
+                if (expenseCase.isLeft()) {
+                    return Either.left(new ServiceError.OperationFailed("Failed to find expense for update: " + expenseCase.getLeft().message()));
+                }
+                existingItem.setExpense(expenseCase.getRight());
+                existingItem.setAmount(itemDto.getAmount());
+                existingItem.setPrice(itemDto.getPrice());
+                updatedItems.add(existingItem);
             }
         }
+
+        // ใช้เมธอดที่สร้างขึ้นใน Entity เพื่อล้าง collection และจัดการ orphan removal ให้ถูกต้อง
+        paymentTransaction.removeAllExpenseItems();
+
+        // เพิ่ม items ที่อัปเดต/สร้างใหม่ทั้งหมดกลับเข้าไป
+        // Hibernate จะจัดการสร้าง (INSERT) หรือ อัปเดต (UPDATE) ให้ถูกต้อง
+        for (PaymentItem item : updatedItems) {
+            paymentTransaction.addExpenseItem(item);
+        }
+
         return Either.right(paymentTransaction);
     }
 

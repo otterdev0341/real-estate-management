@@ -29,14 +29,13 @@ public class PaymentTransaction extends BaseTime {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "transaction", nullable = false)
-    @JsonIgnoreProperties("payment_transactions")
     private Transaction transaction;
 
     @ManyToOne
     @JoinColumn(name = "property_id")
     private Property property;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contact_id")
     private Contact contact;
 
@@ -57,6 +56,30 @@ public class PaymentTransaction extends BaseTime {
     private Set<FileDetail> fileDetails = new HashSet<>();
 
 
+    public void addExpenseItem(PaymentItem item) {
+        // กำหนดความสัมพันธ์สองทาง (bidirectional relationship)
+        // ให้ item รู้จักกับ parent (PaymentTransaction)
+        item.setPayment(this);
+        this.expenseItems.add(item);
+    }
+
+    public void removeExpenseItem(PaymentItem item) {
+        // ลบ item ออกจาก list
+        this.expenseItems.remove(item);
+        // ยกเลิกความสัมพันธ์
+        // ทำให้ Hibernate มองเห็นว่า item นี้เป็น orphan และจะลบมันออกไป
+        item.setPayment(null);
+    }
+
+    public void removeAllExpenseItems() {
+        Iterator<PaymentItem> iterator = this.expenseItems.iterator();
+        while (iterator.hasNext()) {
+            PaymentItem item = iterator.next();
+            item.setPayment(null);
+            iterator.remove();
+        }
+    }
+
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
@@ -64,8 +87,8 @@ public class PaymentTransaction extends BaseTime {
         Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
-        Property property = (Property) o;
-        return getId() != null && Objects.equals(getId(), property.getId());
+        PaymentTransaction that = (PaymentTransaction) o;
+        return getId() != null && Objects.equals(getId(), that.getId());
     }
 
     @Override
