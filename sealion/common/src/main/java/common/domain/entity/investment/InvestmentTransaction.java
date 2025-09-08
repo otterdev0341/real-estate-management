@@ -20,7 +20,7 @@ import java.util.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class InvestmentTransaction  {
+public class InvestmentTransaction extends BaseTime {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -51,6 +51,36 @@ public class InvestmentTransaction  {
     @JsonManagedReference
     @Builder.Default
     private Set<FileDetail> fileDetails = new HashSet<>();
+
+    public void addInvestmentItem(InvestmentItem item) {
+        item.setInvestment(this);
+        this.investmentItems.add(item);
+    }
+
+    public void removeInvestmentItem(InvestmentItem item) {
+        this.investmentItems.remove(item);
+        item.setInvestment(null);
+    }
+
+    public void removeAllInvestmentItems() {
+        Iterator<InvestmentItem> iterator = this.investmentItems.iterator();
+        while (iterator.hasNext()) {
+            InvestmentItem item = iterator.next();
+            item.setInvestment(null);
+            iterator.remove();
+        }
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) return false;
+        InvestmentTransaction that = (InvestmentTransaction) o;
+        return getId() != null && Objects.equals(getId(), that.getId());
+    }
 
     @Override
     public final int hashCode() {

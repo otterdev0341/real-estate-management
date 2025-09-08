@@ -6,6 +6,7 @@ import common.domain.dto.fileDetail.RequestAttachFile;
 import common.domain.dto.query.BaseQuery;
 import common.domain.entity.FileDetail;
 import common.domain.entity.investment.InvestmentTransaction;
+import common.domain.mapper.FileDetailMapper;
 import common.response.ErrorResponse;
 import common.response.SuccessResponse;
 import common.service.declare.fileAssetManagement.FileAssetManagementService;
@@ -13,6 +14,7 @@ import common.service.declare.fileAssetManagement.fileAssetChoice.FileCaseSelect
 import investment.controller.Internal.InternalInvestmentController;
 import investment.domain.dto.wrapper.ReqCreateInvestmentWrapperForm;
 import investment.domain.dto.wrapper.ReqUpdateInvestmentWrapper;
+import investment.domain.mapper.InvestmentMapper;
 import investment.service.internal.InternalInvestmentTransactionService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -50,14 +52,20 @@ public class InvestmentController extends BaseController implements InternalInve
 
     private final InternalInvestmentTransactionService investmentTransactionService;
     private final FileAssetManagementService fileAssetManagementService;
+    private final FileDetailMapper fileDetailMapper;
+    private final InvestmentMapper investmentMapper;
 
     @Inject
     public InvestmentController(
             @Named("investmentService") InternalInvestmentTransactionService investmentTransactionService,
-            @Named("investmentService") FileAssetManagementService fileAssetManagementService
+            @Named("investmentService") FileAssetManagementService fileAssetManagementService,
+            FileDetailMapper fileDetailMapper,
+            InvestmentMapper investmentMapper
     ) {
         this.investmentTransactionService = investmentTransactionService;
         this.fileAssetManagementService = fileAssetManagementService;
+        this.fileDetailMapper = fileDetailMapper;
+        this.investmentMapper = investmentMapper;
     }
 
 
@@ -81,9 +89,9 @@ public class InvestmentController extends BaseController implements InternalInve
                             return Response.status(errorResponse.getStatusCode()).entity(errorResponse).build();
                         },
                         success -> {
-                            SuccessResponse<InvestmentTransaction> successResponse = new SuccessResponse<>(
+                            SuccessResponse<?> successResponse = new SuccessResponse<>(
                                     "new investment transaction created successfully",
-                                    success
+                                    investmentMapper.toDto(success)
                             );
                             return Response.status(Response.Status.CREATED).entity(successResponse).build();
                         }
@@ -110,7 +118,7 @@ public class InvestmentController extends BaseController implements InternalInve
                         success -> {
                             SuccessResponse<?> successResponse = new SuccessResponse<>(
                                     "Data fetched successfully",
-                                    success
+                                    investmentMapper.toDto(success)
                             );
                             return Response.status(Response.Status.OK).entity(successResponse).build();
                         }
@@ -138,9 +146,9 @@ public class InvestmentController extends BaseController implements InternalInve
                             return Response.status(errorResponse.getStatusCode()).entity(errorResponse).build();
                         },
                         success -> {
-                            SuccessResponse<InvestmentTransaction> successResponse = new SuccessResponse<>(
+                            SuccessResponse<?> successResponse = new SuccessResponse<>(
                                     "Investment transaction updated successfully",
-                                    success
+                                    investmentMapper.toDto(success)
                             );
                             return Response.status(Response.Status.OK).entity(successResponse).build();
                         }
@@ -206,7 +214,7 @@ public class InvestmentController extends BaseController implements InternalInve
                         success -> {
                             SuccessResponse<?> successResponse = new SuccessResponse<>(
                                     "Investment transactions retrieved successfully",
-                                    success
+                                    investmentMapper.toDtoList(success)
                             );
                             return Response
                                     .status(Response.Status.OK)
@@ -310,9 +318,9 @@ public class InvestmentController extends BaseController implements InternalInve
                             return Response.status(errorResponse.getStatusCode()).entity(errorResponse).build();
                         },
                         success -> {
-                            SuccessResponse<List<FileDetail>> successResponse = new SuccessResponse<>(
+                            SuccessResponse<?> successResponse = new SuccessResponse<>(
                                     "file retrieved successfully",
-                                    success
+                                    fileDetailMapper.toDto(success)
                             );
                             return Response
                                     .status(Response.Status.OK)
