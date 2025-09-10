@@ -128,7 +128,7 @@ public class InvestmentTransactionService implements InternalInvestmentTransacti
         if (investmentItemCase.isLeft()) return Either.left(new ServiceError.OperationFailed("Failed to retrieved investment transaction items, cause by:" + investmentItemCase.getLeft().message()));
         List<InvestmentItem> targetItemList = investmentItemCase.getRight();
         for (InvestmentItem eachItem : targetItemList) {
-            targetInvestmentTransaction.getInvestmentItems().add(eachItem);
+            targetInvestmentTransaction.addInvestmentItem(eachItem);
         }
 
         // 3: loop through add file details and attach them to investment transaction
@@ -264,21 +264,40 @@ public class InvestmentTransactionService implements InternalInvestmentTransacti
             List<InvestmentItemDto> investmentItemDtoList,
             UUID userId
     ) {
-        // if id is null, check contact and add new item to investment transaction
-        // if it has id, find item with id check contact and update it
-        for (InvestmentItemDto eachInvestmentItemDto : investmentItemDtoList) {
-            if (eachInvestmentItemDto.getId() == null) {
-                // case 1: id is null, create new payment item
-                Either<ServiceError, InvestmentItem> newInvestmentItemCase = helpUpdateInvestmentItemCaseNullId(eachInvestmentItemDto, userId);
-                if (newInvestmentItemCase.isLeft()) return Either.left(new ServiceError.OperationFailed("Failed to create new investment item, cause by: " + newInvestmentItemCase.getLeft().message()));
-                InvestmentItem newInvestmentItem = newInvestmentItemCase.getRight();
-                investmentTransaction.getInvestmentItems().add(newInvestmentItem);
+        List<InvestmentItem> updatedItems = new ArrayList<>();
+
+        for (InvestmentItemDto itemDto : investmentItemDtoList) {
+            if (itemDto.getId() == null) {
+                // Case 1: New item, create it
+                Either<ServiceError, InvestmentItem> newItemCase = helpUpdateInvestmentItemCaseNullId(itemDto, userId);
+                if (newItemCase.isLeft()) {
+                    return Either.left(new ServiceError.OperationFailed("Failed to create new investment item: " + newItemCase.getLeft().message()));
+                }
+                updatedItems.add(newItemCase.getRight());
             } else {
-                // case 2: id exist, update payment item
-                Either<ServiceError, InvestmentItem> updatedInvestmentItemCase = helpUpdateInvestmentItemCaseIdExist(eachInvestmentItemDto, investmentTransaction, userId);
-                if (updatedInvestmentItemCase.isLeft()) return Either.left(new ServiceError.OperationFailed("Failed to update investment item with ID: "  + updatedInvestmentItemCase.getLeft().message()));
+                // Case 2: Existing item, find and update it
+                Either<ServiceError, InvestmentItem> updatedItemCase = helpUpdateInvestmentItemCaseIdExist(itemDto, investmentTransaction, userId);
+                if (updatedItemCase.isLeft()) {
+                    return Either.left(new ServiceError.OperationFailed("Failed to update investment item with ID " + itemDto.getId() + ": " + updatedItemCase.getLeft().message()));
+                }
+                // The helpUpdateInvestmentItemCaseIdExist method already modifies the item in the transaction's list.
+                // We just need to find it again to add to our `updatedItems` list.
+                investmentTransaction.getInvestmentItems().stream()
+                        .filter(item -> item.getId().equals(itemDto.getId()))
+                        .findFirst()
+                        .ifPresent(updatedItems::add);
             }
         }
+
+        // Use the entity's method to clear the collection and correctly handle orphan removal.
+        investmentTransaction.removeAllInvestmentItems();
+
+        // Add the updated and new items back.
+        // Hibernate will correctly manage INSERTs, UPDATEs, and DELETEs.
+        for (InvestmentItem item : updatedItems) {
+            investmentTransaction.addInvestmentItem(item);
+        }
+
         return Either.right(investmentTransaction);
     }
 
@@ -303,12 +322,12 @@ public class InvestmentTransactionService implements InternalInvestmentTransacti
             InvestmentTransaction investmentTransaction,
             UUID userId
     ){
-        // find payment item by id in payment transaction
-        // check expense id
-        // update payment item with new expense, amount and price
+        // Find the investment item by ID within the transaction's existing items.
         for (InvestmentItem investmentItem : investmentTransaction.getInvestmentItems()) {
             if (investmentItem.getId().equals(investmentItemDto.getId())) {
-                // check contact
+                // The item exists, now update its fields.
+
+                // Check if the contact needs to be updated.
                 Either<ServiceError, Contact> contactExistCase = contactService.findContactByIdAndUser(investmentItemDto.getContact(), userId);
                 if (contactExistCase.isLeft()) {
                     return Either.left(new ServiceError.OperationFailed("Failed to find Contact with ID: , cause by: " + contactExistCase.getLeft().message()));
@@ -320,7 +339,7 @@ public class InvestmentTransactionService implements InternalInvestmentTransacti
                 return Either.right(investmentItem);
             }
         }
-        return Either.left(new ServiceError.NotFound("Investment item not found in payment transaction"));
+        return Either.left(new ServiceError.NotFound("Investment item with ID " + investmentItemDto.getId() + " not found in the transaction."));
     }
 
 
