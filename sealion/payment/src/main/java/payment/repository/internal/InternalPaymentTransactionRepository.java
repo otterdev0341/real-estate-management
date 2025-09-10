@@ -14,6 +14,6 @@ public interface InternalPaymentTransactionRepository  {
     Either<RepositoryError, PaymentTransaction> updatePaymentTransaction(PaymentTransaction paymentTransaction);
     Either<RepositoryError, PaymentTransaction> findPaymentTransactionByIdAndUserId(UUID paymentTransactionId, UUID userId);
     Either<RepositoryError, Boolean> deletePaymentTransactionById(UUID paymentTransactionId, UUID userId);
-    Either<RepositoryError, List<PaymentTransaction>> findAlPaymentTransactionWithUserId(UUID userId, BaseQuery query);
+    Either<RepositoryError, List<PaymentTransaction>> findAllPaymentTransactionWithUserId(UUID userId, BaseQuery query);
 
 }

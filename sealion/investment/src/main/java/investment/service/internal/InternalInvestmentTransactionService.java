@@ -17,5 +17,6 @@ public interface InternalInvestmentTransactionService {
     Either<ServiceError, InvestmentTransaction> findInvestmentTransactionByIdAndUserId(UUID investmentTransactionId, UUID userId);
     Either<ServiceError, Boolean> deleteInvestmentTransactionById(UUID investmentTransactionId, UUID userId);
     Either<ServiceError, List<InvestmentTransaction>> findAllInvestmentTransactionWithUserId(UUID userId, BaseQuery query);
-
+    // findAllInvestmentByPropertyId
+    Either<ServiceError, List<InvestmentTransaction>> findAllInvestmentByPropertyId(UUID propertyId, UUID userId);
 }

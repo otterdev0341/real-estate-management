@@ -28,4 +28,6 @@ public interface InternalPropertyController {
             @Parameter(description = "ASC | DESC (default: DESC)", example = "") @QueryParam("sortDirection") String sortDirection
     );
 
+    // findAllInvestmentByPropertyId
+
 }

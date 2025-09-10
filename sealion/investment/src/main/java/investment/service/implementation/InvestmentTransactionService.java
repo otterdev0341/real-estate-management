@@ -45,6 +45,7 @@ public class InvestmentTransactionService implements InternalInvestmentTransacti
     private final DeclareContactService contactService;
 
 
+
     @Inject
     public InvestmentTransactionService(
             @Named("investmentRepository") InternalInvestmentTransactionRepository investmentRepository,
@@ -54,6 +55,7 @@ public class InvestmentTransactionService implements InternalInvestmentTransacti
             TransactionService transactionService,
             DeclarePropertyService propertyService,
             DeclareContactService contactService
+
     ) {
         this.investmentRepository = investmentRepository;
         this.fileAssetManagementRepository = fileAssetManagementRepository;
@@ -368,5 +370,22 @@ public class InvestmentTransactionService implements InternalInvestmentTransacti
                         error -> Either.left(new ServiceError.OperationFailed("Error occurred while fetching data due to: " + error.message())),
                         Either::right
                 );
+    }
+
+    @Override
+    public Either<ServiceError, List<InvestmentTransaction>> findAllInvestmentByPropertyId(UUID propertyId, UUID userId) {
+        return propertyService.findPropertyByIdAndUserId(propertyId, userId)
+                .mapLeft(propertyNotFoundError -> propertyNotFoundError)
+                .flatMapRight(property -> {
+                    return investmentRepository.findAllInvestmentTransactionWIthUserId(userId, new BaseQuery())
+                            .mapRight(items -> Pair.of(property, items))
+                            .mapLeft(error -> new ServiceError.OperationFailed("Error occurred while fetching data due to: " + error.message()));
+                })
+                .flatMapRight(target -> {
+                    Property targetProperty = target.getLeft();
+                    List<InvestmentTransaction> targetList = target.getRight();
+                    List<InvestmentTransaction> finalResult = targetList.stream().filter(item -> item.getProperty().getId().equals(propertyId)).toList();
+                    return Either.right(finalResult);
+                });
     }
 }

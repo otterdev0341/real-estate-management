@@ -241,6 +241,37 @@ public class PaymentTransactionController extends BaseController implements Inte
                 );
     }
 
+    @GET
+    @Path("/property/{propertyId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Override
+    public Response getAllPaymentByPropertyId(@PathParam("propertyId") UUID propertyId) {
+        UUID userId = getCurrentUserIdOrThrow();
+        return paymentTransactionService.findAllPaymentByPropertyId(propertyId, userId)
+                .fold(
+                  error -> {
+                      ErrorResponse errorResponse = new ErrorResponse(
+                              "Failed to retrieve payments",
+                              error.message(),
+                              Response.Status.BAD_REQUEST
+                      );
+                      return Response.status(errorResponse.getStatusCode())
+                              .entity(errorResponse)
+                              .build();
+                  },
+                  success -> {
+                      SuccessResponse<?> successResponse = new SuccessResponse<>(
+                              "Payments retrieved successfully",
+                              paymentMapper.toDtoList(success)
+                      );
+                      return Response
+                              .status(Response.Status.OK)
+                              .entity(successResponse)
+                              .build();
+                  }
+                );
+    }
+
     @POST
     @Path("/attach/{targetId}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)

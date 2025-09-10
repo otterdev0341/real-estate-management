@@ -28,4 +28,6 @@ public interface InternalPaymentController extends FileAssetManagementController
             @QueryParam("sortDirection") String sortDirection
     );
 
+    Response getAllPaymentByPropertyId(UUID propertyId);
+
 }

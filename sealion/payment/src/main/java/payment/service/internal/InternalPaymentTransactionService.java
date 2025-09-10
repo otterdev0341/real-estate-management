@@ -2,6 +2,7 @@ package payment.service.internal;
 
 import com.spencerwi.either.Either;
 import common.domain.dto.query.BaseQuery;
+import common.domain.entity.investment.InvestmentTransaction;
 import common.domain.entity.payment.PaymentTransaction;
 import common.errorStructure.ServiceError;
 import payment.domain.dto.wrapper.ReqCreatePaymentWrapperForm;
@@ -18,5 +19,6 @@ public interface InternalPaymentTransactionService {
     Either<ServiceError, PaymentTransaction> findPaymentTransactionByIdAndUserId(UUID paymentTransactionId, UUID userId);
     Either<ServiceError, Boolean> deletePaymentTransactionById(UUID paymentTransactionId, UUID userId);
     Either<ServiceError, List<PaymentTransaction>> findAllPaymentTransactionWithUserId(UUID userId, BaseQuery query);
+    Either<ServiceError, List<PaymentTransaction>> findAllPaymentByPropertyId(UUID propertyId, UUID userId);
 
 }

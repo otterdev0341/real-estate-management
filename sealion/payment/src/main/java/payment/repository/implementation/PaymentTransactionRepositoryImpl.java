@@ -113,7 +113,7 @@ public class PaymentTransactionRepositoryImpl implements PanacheRepositoryBase<P
     }
 
     @Override
-    public Either<RepositoryError, List<PaymentTransaction>> findAlPaymentTransactionWithUserId(UUID userId, BaseQuery query) {
+    public Either<RepositoryError, List<PaymentTransaction>> findAllPaymentTransactionWithUserId(UUID userId, BaseQuery query) {
         try {
 
             var stream = jpaStreamer.stream(PaymentTransaction.class)

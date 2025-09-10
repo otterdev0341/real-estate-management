@@ -11,14 +11,11 @@ import common.errorStructure.ServiceError;
 import common.repository.declare.FileAssetManagementRepository;
 import common.service.declare.fileAssetManagement.FileAssetManagementService;
 import common.service.declare.fileAssetManagement.fileAssetChoice.FileCaseSelect;
-import contact.domain.dto.contact.ResEntryContactDto;
 import contact.service.declare.DeclareContactService;
 import expense.service.declare.DeclareExpenseService;
 import fileDetail.service.implementation.FileDetailService;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.persistence.EntityManager;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import payment.domain.dto.item.ReqCreatePaymentItemDto;
@@ -139,11 +136,28 @@ public class PaymentTransactionService implements InternalPaymentTransactionServ
 
     @Override
     public Either<ServiceError, List<PaymentTransaction>> findAllPaymentTransactionWithUserId(UUID userId, BaseQuery query) {
-        return paymentTransactionRepository.findAlPaymentTransactionWithUserId(userId, query)
+        return paymentTransactionRepository.findAllPaymentTransactionWithUserId(userId, query)
                 .fold(
                         error -> Either.left(new ServiceError.OperationFailed("Failed to fetch all payment transactions for user: " + userId + " due to: " + error.message())),
                         Either::right
                 );
+    }
+
+    @Override
+    public Either<ServiceError, List<PaymentTransaction>> findAllPaymentByPropertyId(UUID propertyId, UUID userId) {
+        return propertyService.findPropertyByIdAndUserId(propertyId, userId)
+                .mapLeft(propertyNotFoundError -> propertyNotFoundError)
+                .flatMapRight(property -> {
+                    return paymentTransactionRepository.findAllPaymentTransactionWithUserId(userId, new BaseQuery())
+                            .mapRight(items -> Pair.of(property, items))
+                            .mapLeft(error -> new ServiceError.OperationFailed("Error occurred while fetching data due to: " + error.message()));
+                })
+                .flatMapRight(target -> {
+                    Property targetProperty = target.getLeft();
+                    List<PaymentTransaction> targetList = target.getRight();
+                    List<PaymentTransaction> finalResult = targetList.stream().filter(item -> item.getProperty().getId().equals(propertyId)).toList();
+                    return Either.right(finalResult);
+                });
     }
 
     @Override

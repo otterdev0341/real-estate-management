@@ -224,6 +224,35 @@ public class InvestmentController extends BaseController implements InternalInve
                 );
     }
 
+    @GET
+    @Path("/property/{propertyId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Override
+    public Response getAllInvestmentByPropertyId(@PathParam("propertyId") UUID propertyId) {
+        UUID userId = getCurrentUserIdOrThrow();
+        return investmentTransactionService.findAllInvestmentByPropertyId(propertyId, userId)
+                .fold(
+                        error -> {
+                            ErrorResponse errorResponse = new ErrorResponse(
+                                    "Error occurred while fetching investment transactions",
+                                    error.message(),
+                                    Response.Status.INTERNAL_SERVER_ERROR
+                            );
+                            return Response.status(errorResponse.getStatusCode()).entity(errorResponse).build();
+                        },
+                        success -> {
+                            SuccessResponse<?> successResponse = new SuccessResponse<>(
+                                    "Investment transactions retrieved successfully",
+                                    investmentMapper.toDtoList(success)
+                            );
+                            return Response
+                                    .status(Response.Status.OK)
+                                    .entity(successResponse)
+                                    .build();
+                        }
+                );
+    }
+
     @POST
     @Path("/attach/{investmentTransactionId}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)

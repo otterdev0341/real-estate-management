@@ -127,6 +127,9 @@ public class InvestmentRepositoryImpl implements PanacheRepositoryBase<Investmen
                 if ("createdAt".equalsIgnoreCase(query.getSortBy())) {
                     comparator = InvestmentTransactionComparator.BY_CREATED_AT;
                 }
+                else if ("propertyId".equalsIgnoreCase(query.getSortBy())) {
+                    comparator = InvestmentTransactionComparator.BY_PROPERTY_ID;
+                }
                 else {
                     return Either.left(new RepositoryError.FetchFailed("Invalid sortBy value: " + query.getSortBy()));
                 }

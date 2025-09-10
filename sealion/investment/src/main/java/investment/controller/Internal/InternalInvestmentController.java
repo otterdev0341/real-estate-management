@@ -26,4 +26,6 @@ public interface InternalInvestmentController  extends FileAssetManagementContro
             @QueryParam("sortDirection") String sortDirection
     );
 
+    Response getAllInvestmentByPropertyId(UUID propertyId);
+
 }
