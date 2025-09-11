@@ -11,6 +11,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
@@ -25,6 +26,9 @@ public class InvestmentTransaction extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(name = "investment_date")
+    private LocalDateTime investmentDate;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "transaction", nullable = false)

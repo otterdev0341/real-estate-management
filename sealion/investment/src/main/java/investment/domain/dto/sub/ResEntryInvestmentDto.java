@@ -18,6 +18,6 @@ public class ResEntryInvestmentDto {
     private UUID transaction;
     private String property;
     private List<ResEntryInvestmentItemDto> items;
-    private LocalDateTime createdAt;
+    private LocalDateTime investmentDate;
     private LocalDateTime updatedAt;
 }

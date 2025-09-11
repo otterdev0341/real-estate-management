@@ -166,6 +166,7 @@ public class PaymentTransactionService implements InternalPaymentTransactionServ
         Either<ServiceError, PaymentTransaction> paymentTransactionCase = helpCreateNewPaymentTransaction(reqCreatePaymentWrapperForm, userId);
         if (paymentTransactionCase.isLeft()) return Either.left(new ServiceError.OperationFailed("Failed to create new payment transaction, cause by: " + paymentTransactionCase.getLeft().message()));
         PaymentTransaction paymentTransaction = paymentTransactionCase.getRight();
+        paymentTransaction.setPaymentDate(reqCreatePaymentWrapperForm.getData().getPersistPaymentDate());
 
         // 2 : add payment transaction item
         Either<ServiceError, List<PaymentItem>> assignPaymentTransactionItemCase = helpCreatePaymentTransactionItems(
@@ -276,6 +277,7 @@ public class PaymentTransactionService implements InternalPaymentTransactionServ
         Either<RepositoryError, PaymentTransaction> paymentTransactionCase = paymentTransactionRepository.findPaymentTransactionByIdAndUserId(paymentTransactionId, userId);
         if (paymentTransactionCase.isLeft()) return Either.left(new ServiceError.NotFound("Payment transaction not found for ID: " + paymentTransactionId + " and user ID: " + userId + ", cause by: " + paymentTransactionCase.getLeft().message()));
         PaymentTransaction paymentTransaction = paymentTransactionCase.getRight();
+        paymentTransaction.setPaymentDate(reqUpdatePaymentWrapperForm.getData().getPersistPaymentDate());
 
         // update payment transaction info
         Either<ServiceError, PaymentTransaction> updatePaymentTransactionInfoCase = helpUpdatePaymentTransactionInfo(paymentTransaction, reqUpdatePaymentWrapperForm, userId);

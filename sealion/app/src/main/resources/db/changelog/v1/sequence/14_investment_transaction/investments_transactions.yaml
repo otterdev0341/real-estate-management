@@ -20,7 +20,11 @@ databaseChangeLog:
                     nullable: false
                     onDelete: RESTRICT
                     onUpdate: CASCADE
-
+              - column:
+                  name: investment_date
+                  type: timestamp
+                  constraints:
+                    nullable: false
               - column:
                   name: transaction
                   type: UUID

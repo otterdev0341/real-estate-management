@@ -51,8 +51,10 @@ public interface SaleMapper {
     }
 
     // form mapper
+    @Mapping(target = "saleDate", expression = "java(formDto.getSaleDate() != null ? java.time.LocalDateTime.parse(formDto.getSaleDate()) : null)")
     ReqCreateSaleDto tryFormToDto(ReqCreateSaleForm formDto);
 
+    @Mapping(target = "saleDate", expression = "java(formDto.getSaleDate() != null ? java.time.LocalDateTime.parse(formDto.getSaleDate()) : null)")
     ReqUpdateSaleDto tryFormToDto(ReqUpdateSaleForm formDto);
 
 }

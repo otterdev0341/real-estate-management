@@ -20,6 +20,11 @@ databaseChangeLog:
                     nullable: false
                     onDelete: RESTRICT
                     onUpdate: CASCADE
+              - column:
+                  name: sale_date
+                  type: timestamp
+                  constraints:
+                    nullable: false
 
               - column:
                   name: transaction

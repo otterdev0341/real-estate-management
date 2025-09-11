@@ -19,6 +19,6 @@ public class ResEntryPaymentDto {
     private String contact;
     private String note;
     private List<ResEntryPaymentItemDto> items;
-    private LocalDateTime createdAt;
+    private LocalDateTime paymentDate;
     private LocalDateTime updatedAt;
 }

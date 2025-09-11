@@ -7,6 +7,7 @@ import payment.domain.dto.item.ReqCreatePaymentItemDto;
 import payment.domain.dto.item.ReqUpdatePaymentItemDto;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,12 +18,23 @@ public class ReqUpdatePaymentDto {
 
     private String note;
 
-    private LocalDateTime createdAt;
+    private String paymentDate;
 
     private UUID contact;
 
     private UUID property;
 
     private List<ReqUpdatePaymentItemDto> items;
+
+    public LocalDateTime getPersistPaymentDate() {
+        try {
+            return LocalDateTime.parse(this.paymentDate);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+
+    }
+
+
 
 }

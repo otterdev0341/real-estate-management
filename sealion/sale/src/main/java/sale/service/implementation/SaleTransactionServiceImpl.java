@@ -141,6 +141,7 @@ public class SaleTransactionServiceImpl implements InternalSaleTransactionServic
                                         .property(pair.getLeft())
                                         .transaction(transaction)
                                         .price(reqCreateSaleDto.getPrice())
+                                        .saleDate(reqCreateSaleDto.getSaleDate())
                                         .fileDetails(new HashSet<>())
                                         .build();
 
@@ -199,6 +200,7 @@ public class SaleTransactionServiceImpl implements InternalSaleTransactionServic
                                 preUpdatedSaleTransaction.getTransaction().setNote(reqUpdateSaleDto.getNote());
                                 preUpdatedSaleTransaction.setPrice(reqUpdateSaleDto.getPrice());
                                 preUpdatedSaleTransaction.setProperty(foundedProperty);
+                                preUpdatedSaleTransaction.setSaleDate(reqUpdateSaleDto.getSaleDate());
                                 return preUpdatedSaleTransaction;
                             })
                             .mapLeft(propertyError -> propertyError);

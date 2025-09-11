@@ -16,6 +16,12 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReqUpdateSaleForm {
+
+
+    @RestForm("saleDate")
+    @PartType(MediaType.TEXT_PLAIN)
+    private String saleDate;
+
     @RestForm("note")
     @PartType(MediaType.TEXT_PLAIN)
     @NotBlank(message = "Note is required")

@@ -124,6 +124,7 @@ public class InvestmentTransactionService implements InternalInvestmentTransacti
         Either<ServiceError, InvestmentTransaction> investmentTransactionCase = helpCreateNewInvestmentTransaction(reqCreateInvestmentWrapperForm, userId);
         if (investmentTransactionCase.isLeft()) return Either.left(new ServiceError.OperationFailed("Failed to create investment transaction cause by :" + investmentTransactionCase.getLeft().message()));
         InvestmentTransaction targetInvestmentTransaction = investmentTransactionCase.getRight();
+        targetInvestmentTransaction.setInvestmentDate(reqCreateInvestmentWrapperForm.getData().getPersistInvestmentDate());
 
         // 2: add investment transaction item
         Either<ServiceError, List<InvestmentItem>> investmentItemCase = helpCreateInvestmentTransactionItems(reqCreateInvestmentWrapperForm.getData().getItems(), userId);
@@ -166,7 +167,7 @@ public class InvestmentTransactionService implements InternalInvestmentTransacti
         Either<ServiceError, Transaction> transactionCase = transactionService.getTransactionPrePersist(TransactionChoice.investment, userId, reqCreateInvestmentWrapperForm.getData().getNote());
         if (transactionCase.isLeft()) return Either.left(new ServiceError.OperationFailed("Failed to retrieved investment transaction"));
         Transaction investmentTransaction = transactionCase.getRight();
-        investmentTransaction.setCreatedAt(reqCreateInvestmentWrapperForm.getData().getCreatedAt());
+
         // create investment transaction object
         return Either.right(
                 InvestmentTransaction.builder()
@@ -250,14 +251,12 @@ public class InvestmentTransactionService implements InternalInvestmentTransacti
             investmentTransaction.setProperty(property);
         }
         // if old created not the same as update created
-        if (!investmentTransaction.getTransaction().getCreatedAt().equals(reqUpdateInvestmentWrapper.getData().getCreatedAt())) {
-            investmentTransaction.getTransaction().setCreatedAt(reqUpdateInvestmentWrapper.getData().getCreatedAt());
+        if (reqUpdateInvestmentWrapper.getData() != null) {
+            investmentTransaction.setInvestmentDate(reqUpdateInvestmentWrapper.getData().getPersistInvestmentDate());
         }
         // if old note the same as update created
-        if (!investmentTransaction.getTransaction().getNote().equals(reqUpdateInvestmentWrapper.getData().getNote()))
-        {
-            investmentTransaction.getTransaction().setNote(reqUpdateInvestmentWrapper.getData().getNote());
-        }
+        investmentTransaction.getTransaction().setNote(reqUpdateInvestmentWrapper.getData().getNote());
+
         return Either.right(investmentTransaction);
     }
 

@@ -25,7 +25,7 @@ public class ResEntrySaleDto {
 
     private String createdBy;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime saleDate;
 
     private LocalDateTime updatedAt;
 

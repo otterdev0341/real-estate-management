@@ -18,7 +18,11 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
                     nullable: false
-
+              - column:
+                  name: payment_date
+                  type: timestamp
+                  constraints:
+                    nullable: false
               - column:
                   name: transaction
                   type: UUID
