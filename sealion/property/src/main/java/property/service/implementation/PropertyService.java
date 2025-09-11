@@ -218,6 +218,7 @@ public class PropertyService implements DeclarePropertyService, InternalProperty
                 .area(reqCreatePropertyDto.getArea())
                 .price(reqCreatePropertyDto.getPrice())
                 .fsp(reqCreatePropertyDto.getFsp())
+                .budget(reqCreatePropertyDto.getBudget())
                 .status(propertyStatus)
                 .ownerBy(owner)
                 .mapUrl(reqCreatePropertyDto.getMapUrl())
@@ -261,52 +262,47 @@ public class PropertyService implements DeclarePropertyService, InternalProperty
         // persist new entity
         return propertyRepository.findPropertyByIdAndUserId(propertyId, userId)
                 .mapLeft(error -> (ServiceError) new ServiceError.OperationFailed("Error while fetch property by id, cause by: " + error.message()))
-                .flatMapRight(property -> {
-                   return propertyRepository.isExistByNameAndUserId(reqUpdatePropertyDto.getName().trim(), userId)
-                           .mapRight(exist -> Pair.of(property, exist))
-                           .mapLeft(theError -> new ServiceError.OperationFailed("Error occurred by checking is new property name exist, cause by: " + theError.message()));
-                }).flatMapRight(pair -> {
-                   boolean isPropertyNameToUpdateExist = pair.getRight();
-                   if(isPropertyNameToUpdateExist) {
-                       ServiceError nameDuplicateError = new ServiceError.DuplicateEntry("the property name already exist");
-                       return Either.left(nameDuplicateError);
-                   }
-                   if (pair.getLeft().getName().equals(reqUpdatePropertyDto.getName().trim())) {
-                       ServiceError samePropertyNameError = new ServiceError.ValidationFailed("the current property name and the name to update is the same");
-                       return Either.left(samePropertyNameError);
-                   }
-                   return propertyStatusRepository.findPropertyStatusByIdAndUserId(reqUpdatePropertyDto.getPropertyStatus(), userId)
-                           .mapRight(foundedPropertyStatus -> Pair.of(pair.getLeft(), foundedPropertyStatus))
-                           .mapLeft(thisError -> new ServiceError.OperationFailed("Error occurred by checking is property status exist, cause by: " + thisError.message()));
-                })
-                .flatMapRight(payload -> {
-                   return contactService.findContactByIdAndUser(reqUpdatePropertyDto.getOwnerBy(), userId)
-                           .mapRight(foundedContact -> Tuple3.of(payload.getLeft(), payload.getRight(), foundedContact))
-                           .mapLeft(error -> new ServiceError.OperationFailed("Error occurred by checking is owner exist, cause by: " + error));
+                .flatMapRight(propertyToUpdate -> {
+                    String newName = reqUpdatePropertyDto.getName().trim();
+                    // Only check for name duplication if the name is being changed.
+                    if (!propertyToUpdate.getName().equals(newName)) {
+                        Either<RepositoryError, Boolean> isNameExistCase = propertyRepository.isExistByNameAndUserId(newName, userId);
+                        if (isNameExistCase.isLeft()) {
+                            return Either.left(new ServiceError.OperationFailed("Failed to check for property name existence: " + isNameExistCase.getLeft().message()));
+                        }
+                        if (isNameExistCase.getRight()) {
+                            return Either.left(new ServiceError.DuplicateEntry("The property name '" + newName + "' already exists."));
+                        }
+                        propertyToUpdate.setName(newName);
+                    }
 
-                })
-                .flatMapRight(prePayLoad -> {
-                    Property updatedProperty = prePayLoad.getItem1();
-                    PropertyStatus propertyStatus = prePayLoad.getItem2();
-                    Contact contact = prePayLoad.getItem3();
+                    // Fetch other related entities for the update.
+                    Either<RepositoryError, PropertyStatus> statusCase = propertyStatusRepository.findPropertyStatusByIdAndUserId(reqUpdatePropertyDto.getPropertyStatus(), userId);
+                    if (statusCase.isLeft()) {
+                        return Either.left(new ServiceError.OperationFailed("Error finding property status: " + statusCase.getLeft().message()));
+                    }
 
-                    updatedProperty.setName(reqUpdatePropertyDto.getName().trim());
-                    updatedProperty.setDescription(reqUpdatePropertyDto.getDescription());
-                    updatedProperty.setSpecific(reqUpdatePropertyDto.getSpecific());
-                    updatedProperty.setHighlight(reqUpdatePropertyDto.getHighlight());
-                    updatedProperty.setArea(reqUpdatePropertyDto.getArea());
-                    updatedProperty.setPrice(reqUpdatePropertyDto.getPrice());
-                    updatedProperty.setFsp(reqUpdatePropertyDto.getFsp());
-                    updatedProperty.setStatus(propertyStatus);
-                    updatedProperty.setOwnerBy(contact);
-                    updatedProperty.setMapUrl(reqUpdatePropertyDto.getMapUrl());
-                    updatedProperty.setLat(reqUpdatePropertyDto.getLat());
-                    updatedProperty.setLng(reqUpdatePropertyDto.getLng());
+                    Either<ServiceError, Contact> ownerCase = contactService.findContactByIdAndUser(reqUpdatePropertyDto.getOwnerBy(), userId);
+                    if (ownerCase.isLeft()) {
+                        return Either.left(new ServiceError.OperationFailed("Error finding owner: " + ownerCase.getLeft().message()));
+                    }
 
-                    return propertyRepository.updateProperty(updatedProperty)
-                            .flatMapRight(Either::right)
-                            .mapLeft(error -> new ServiceError.OperationFailed("Error occurred by updating property, cause by: " + error.message()));
+                    // Apply all updates to the property entity.
+                    propertyToUpdate.setDescription(reqUpdatePropertyDto.getDescription());
+                    propertyToUpdate.setSpecific(reqUpdatePropertyDto.getSpecific());
+                    propertyToUpdate.setHighlight(reqUpdatePropertyDto.getHighlight());
+                    propertyToUpdate.setArea(reqUpdatePropertyDto.getArea());
+                    propertyToUpdate.setPrice(reqUpdatePropertyDto.getPrice());
+                    propertyToUpdate.setFsp(reqUpdatePropertyDto.getFsp());
+                    propertyToUpdate.setBudget(reqUpdatePropertyDto.getBudget());
+                    propertyToUpdate.setStatus(statusCase.getRight());
+                    propertyToUpdate.setOwnerBy(ownerCase.getRight());
+                    propertyToUpdate.setMapUrl(reqUpdatePropertyDto.getMapUrl());
+                    propertyToUpdate.setLat(reqUpdatePropertyDto.getLat());
+                    propertyToUpdate.setLng(reqUpdatePropertyDto.getLng());
 
+                    return propertyRepository.updateProperty(propertyToUpdate)
+                            .mapLeft(error -> new ServiceError.OperationFailed("Error occurred while updating property: " + error.message()));
                 });
     }
 

@@ -52,6 +52,10 @@ databaseChangeLog:
                   type: decimal(10,2)
 
               - column:
+                  name: budget
+                  type: decimal(10,2)
+
+              - column:
                   name: status
                   type: UUID
                   constraints:

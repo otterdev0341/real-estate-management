@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,6 +20,8 @@ import java.util.UUID;
 @NoArgsConstructor
 public class ReqCreateMemoDto {
 
+    private LocalDateTime memoDate;
+
     private String name;
 
     private String detail;
@@ -26,4 +29,6 @@ public class ReqCreateMemoDto {
     private UUID memoType;
 
     private List<FileUpload> files;
+
+
 }

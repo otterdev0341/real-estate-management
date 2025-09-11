@@ -21,6 +21,10 @@ import java.util.UUID;
 @Builder
 public class ReqUpdateMemoForm {
 
+    @RestForm("memoDate")
+    @PartType(MediaType.TEXT_PLAIN)
+    private String memoDate;
+
     @RestForm("name")
     @NotBlank(message = "name of memo is required")
     @PartType(MediaType.TEXT_PLAIN)

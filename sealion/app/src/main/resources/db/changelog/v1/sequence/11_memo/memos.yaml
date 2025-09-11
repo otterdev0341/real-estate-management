@@ -38,6 +38,12 @@ databaseChangeLog:
                     nullable: false
 
               - column:
+                  name: memo_date
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
                   name: created_by
                   type: UUID
 

@@ -253,19 +253,19 @@ public class ContactService implements InternalContactService, DeclareContactSer
 
 
         // section 3 : check is new businessName didn't exist and not the same as before
-        Either<RepositoryError, Boolean> businessNameCheck = contactRepository.isExistByBusinessNameAndUserId(reqUpdateContactDto.getBusinessName().trim(), userId);
-        // handle operation error
-        if (businessNameCheck.isLeft()) {
-            return Either.left(new ServiceError.OperationFailed("Failed to check business name exist reason by :" + businessNameCheck.getLeft().message()));
-        }
-        // handle duplicate
-        if (businessNameCheck.getRight()) {
-            return Either.left(new ServiceError.DuplicateEntry("The business name already exist with this user, value as" + reqUpdateContactDto.getBusinessName()));
-        }
-        // handle the new and old is the same
-        if (updatedContact.getBusinessName().equals(reqUpdateContactDto.getBusinessName().trim())) {
-            return Either.left(new ServiceError.ValidationFailed("Conflict Error, the old Business Name is: " + updatedContact.getBusinessName().trim() + " the new to update is :" + reqUpdateContactDto.getBusinessName().trim()));
-        }
+//        Either<RepositoryError, Boolean> businessNameCheck = contactRepository.isExistByBusinessNameAndUserId(reqUpdateContactDto.getBusinessName().trim(), userId);
+//        // handle operation error
+//        if (businessNameCheck.isLeft()) {
+//            return Either.left(new ServiceError.OperationFailed("Failed to check business name exist reason by :" + businessNameCheck.getLeft().message()));
+//        }
+//        // handle duplicate
+//        if (businessNameCheck.getRight()) {
+//            return Either.left(new ServiceError.DuplicateEntry("The business name already exist with this user, value as" + reqUpdateContactDto.getBusinessName()));
+//        }
+//        // handle the new and old is the same
+//        if (updatedContact.getBusinessName().equals(reqUpdateContactDto.getBusinessName().trim())) {
+//            return Either.left(new ServiceError.ValidationFailed("Conflict Error, the old Business Name is: " + updatedContact.getBusinessName().trim() + " the new to update is :" + reqUpdateContactDto.getBusinessName().trim()));
+//        }
 
         // section 4 : check is contact type exist and belong to user
         Either<ServiceError, ContactType> isContactTypeExist = contactTypeService.findContactTypeByIdAndUserId(reqUpdateContactDto.getContactType(), userId);

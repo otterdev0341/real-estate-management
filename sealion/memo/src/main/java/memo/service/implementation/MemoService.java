@@ -208,6 +208,7 @@ public class MemoService implements DeclareMemoService, InternalMemoService, Fil
                             .detail(reqCreateMemo.getDetail())
                             .memoType(memoType)
                             .createdBy(user)
+                            .memoDate(reqCreateMemo.getMemoDate())
                             .fileDetails(new HashSet<>())
                             .build();
 
@@ -252,41 +253,34 @@ public class MemoService implements DeclareMemoService, InternalMemoService, Fil
         // check is memo type exist
         // perform update
         return memoRepository.findMemoAndUserId(memoId, userId)
-                .flatMapLeft(error -> {
-                    ServiceError theError = new ServiceError.OperationFailed("Failed to find memo by id cause by :" + error.message());
-                    return Either.left(theError);
-                })
-                .flatMapRight(memo -> {
-                    if(!memo.getCreatedBy().getId().equals(userId)) {
-                        ServiceError theError = new ServiceError.NotFound("Memo not found or not belong to the user");
-                        return Either.left(theError);
-                    }
-                    return memoRepository.isExistByNameAndUserId(reqUpdateMemoDto.getName(), userId)
-                            .mapRight(isExist -> Pair.of(memo, isExist))
-                            .mapLeft(error -> new ServiceError.OperationFailed("Failed to check new memo name to update cause by :" + error.message()));
-                })
-                .flatMapRight(pair -> {
+                .mapLeft(error -> (ServiceError) new ServiceError.OperationFailed("Failed to find memo by id: " + error.message()))
+                .flatMapRight(memoToUpdate -> {
+                    String newName = reqUpdateMemoDto.getName().trim();
 
-                    if (pair.getRight()) {
-                        ServiceError theError = new ServiceError.DuplicateEntry("the new memo name already exist");
-                        return Either.left(theError);
+                    // Only check for name duplication if the name is being changed.
+                    if (!memoToUpdate.getName().equals(newName)) {
+                        var isNameExistCase = memoRepository.isExistByNameAndUserId(newName, userId);
+                        if (isNameExistCase.isLeft()) {
+                            return Either.left(new ServiceError.OperationFailed("Failed to check for memo name existence: " + isNameExistCase.getLeft().message()));
+                        }
+                        if (isNameExistCase.getRight()) {
+                            return Either.left(new ServiceError.DuplicateEntry("The memo name '" + newName + "' already exists."));
+                        }
+                        memoToUpdate.setName(newName);
                     }
+
+                    // Fetch the memo type for the update.
                     return memoTypeRepository.findMemoTypeAndUserId(reqUpdateMemoDto.getMemoType(), userId)
-                            .mapRight(memoType -> Pair.of(pair.getLeft(), memoType))
-                            .mapLeft(error -> new ServiceError.OperationFailed("contact type not exist, cause by:" + error.message()));
-
-                })
-                .flatMapRight(pair -> {
-                    Memo targetMemo = pair.getLeft();
-                    MemoType memoType = pair.getRight();
-                    targetMemo.setName(reqUpdateMemoDto.getName().trim());
-                    targetMemo.setDetail(reqUpdateMemoDto.getDetail());
-                    targetMemo.setMemoType(memoType);
-
-                    return memoRepository.updateMemo(targetMemo)
-                            .flatMapRight(Either::right)
-                            .mapLeft(error -> new ServiceError.OperationFailed("Update memo error cause by:" + error.message()));
-
+                            .mapLeft(repoErr -> (ServiceError) new ServiceError.ValidationFailed("Failed to find memo type: " + repoErr.message()))
+                            .flatMapRight(memoType -> {
+                                // Apply all updates to the entity.
+                                memoToUpdate.setDetail(reqUpdateMemoDto.getDetail());
+                                memoToUpdate.setMemoDate(reqUpdateMemoDto.getMemoDate());
+                                memoToUpdate.setMemoType(memoType);
+                                // Persist the changes.
+                                return memoRepository.updateMemo(memoToUpdate)
+                                        .mapLeft(repoErr -> (ServiceError) new ServiceError.OperationFailed("Failed to update memo: " + repoErr.message()));
+                            });
                 });
 
 

@@ -117,38 +117,33 @@ public class ExpenseService  implements DeclareExpenseService, InternalExpenseSe
         // prepare payload
         // persist update
         return expenseRepository.findExpenseAndUserId(expenseId, userId)
-                .flatMapLeft(error -> {
-                    ServiceError theError = new ServiceError.OperationFailed("Failed to fetch expense or expense not found" + error.message());
-                    return Either.left(theError);
-                })
-                .flatMapRight(expenseExist -> {
-                    return expenseRepository.isExistByDetailAndUserId(expenseDto.getDetail(), userId)
-                            .mapRight(isExist -> Pair.of(expenseExist, isExist))
-                            .mapLeft(error -> new ServiceError.OperationFailed("Failed to check is new expense exist" + error.message()));
-                })
-                .flatMapRight(pair -> {
-                    Expense expense = pair.getLeft();
-                    Boolean isNewDetailDetailExist = pair.getRight();
-                    if (isNewDetailDetailExist) {
-                        return Either.left(new ServiceError.DuplicateEntry("Expense already exist for this user"));
+                .mapLeft(error -> (ServiceError) new ServiceError.OperationFailed("Failed to fetch expense or expense not found: " + error.message()))
+                .flatMapRight(expenseToUpdate -> {
+                    String newDetail = expenseDto.getDetail().trim();
+
+                    // Only check for detail duplication if the detail is being changed.
+                    if (!expenseToUpdate.getDetail().equals(newDetail)) {
+                        var isDetailExistCase = expenseRepository.isExistByDetailAndUserId(newDetail, userId);
+                        if (isDetailExistCase.isLeft()) {
+                            return Either.left(new ServiceError.OperationFailed("Failed to check for expense detail existence: " + isDetailExistCase.getLeft().message()));
+                        }
+                        if (isDetailExistCase.getRight()) {
+                            return Either.left(new ServiceError.DuplicateEntry("The expense detail '" + newDetail + "' already exists."));
+                        }
+                        expenseToUpdate.setDetail(newDetail);
                     }
+
+                    // Fetch the expense type for the update.
                     return expenseTypeRepository.findExpenseTypeAndUserId(expenseDto.getExpenseType(), userId)
-                            .mapRight(expenseTypeExist -> Pair.of(expense, expenseTypeExist))
-                            .mapLeft(repoErr -> new ServiceError.ValidationFailed("failed to check expense type by" + repoErr.message()));
-                })
-                .flatMapRight(pair -> {
-                    Expense expense = pair.getLeft();
-                    ExpenseType expenseType = pair.getRight();
-                    expense.setDetail(expenseDto.getDetail().trim());
-                    expense.setExpenseType(expenseType);
-                    return expenseRepository.updateExpense(expense)
-                            .flatMapLeft(repoErr -> {
-                                ServiceError theError = new ServiceError.OperationFailed("Failed to update expense reason by: " + repoErr.message());
-                                return Either.left(theError);
-                            })
-                            .flatMapRight(success -> {
-                                ResEntryExpenseDto payload = expenseMapper.toDto(success);
-                                return Either.right(payload);
+                            .mapLeft(repoErr -> (ServiceError) new ServiceError.ValidationFailed("Failed to find expense type: " + repoErr.message()))
+                            .flatMapRight(expenseType -> {
+                                // Apply updates to the entity.
+                                expenseToUpdate.setExpenseType(expenseType);
+
+                                // Persist the changes.
+                                return expenseRepository.updateExpense(expenseToUpdate)
+                                        .mapLeft(repoErr -> (ServiceError) new ServiceError.OperationFailed("Failed to update expense: " + repoErr.message()))
+                                        .mapRight(expenseMapper::toDto);
                             });
                 });
     } // end class

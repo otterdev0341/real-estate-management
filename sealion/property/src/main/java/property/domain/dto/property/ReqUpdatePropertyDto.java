@@ -28,6 +28,8 @@ public class ReqUpdatePropertyDto {
 
     private BigDecimal fsp;
 
+    private BigDecimal budget;
+
     private UUID propertyStatus;
 
     private UUID ownerBy;

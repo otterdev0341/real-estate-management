@@ -13,6 +13,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Mapper(
@@ -44,8 +45,10 @@ public interface MemoMapper {
     // Helper for list mapping
     List<ResEntryMemoDto> toDtoList(List<Memo> memos);
 
+    @Mapping(target = "memoDate", expression = "java(formDto.getMemoDate() != null ? java.time.LocalDateTime.parse(formDto.getMemoDate()) : null)")
     ReqCreateMemoDto tryFormToDto(ReqCreateMemoForm formDto);
 
+    @Mapping(target = "memoDate", expression = "java(formDto.getMemoDate() != null ? java.time.LocalDateTime.parse(formDto.getMemoDate()) : null)")
     ReqUpdateMemoDto tryFormToDto(ReqUpdateMemoForm formDto);
 
 }

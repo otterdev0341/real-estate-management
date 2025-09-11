@@ -7,6 +7,7 @@ import common.domain.dto.base.ResListBaseDto;
 import common.domain.dto.fileDetail.RequestAttachFile;
 import common.domain.dto.query.BaseQuery;
 import common.domain.entity.FileDetail;
+import common.domain.mapper.FileDetailMapper;
 import common.response.ErrorResponse;
 import common.response.SuccessResponse;
 import common.service.declare.fileAssetManagement.FileAssetManagementService;
@@ -63,18 +64,21 @@ public class MemoController extends BaseController implements InternalMemoContro
     private final DeclareMemoService declareMemoService;
     private final FileAssetManagementService fileAssetManagementService;
     private final MemoMapper memoMapper;
+    private final FileDetailMapper fileDetailMapper;
 
     @Inject
     public MemoController(
             @Named("memoService") InternalMemoService memoService,
             @Named("memoService") DeclareMemoService declareMemoService,
             @Named("memoService") FileAssetManagementService fileAssetManagementService,
-            MemoMapper memoMapper
+            MemoMapper memoMapper,
+            FileDetailMapper fileDetailMapper
     ) {
         this.memoService = memoService;
         this.declareMemoService = declareMemoService;
         this.fileAssetManagementService = fileAssetManagementService;
         this.memoMapper = memoMapper;
+        this.fileDetailMapper = fileDetailMapper;
     }
 
 
@@ -183,9 +187,9 @@ public class MemoController extends BaseController implements InternalMemoContro
                                     .build();
                         },
                         success -> {
-                            SuccessResponse<List<FileDetail>> fetchSuccessResponse = new SuccessResponse<>(
+                            SuccessResponse<?> fetchSuccessResponse = new SuccessResponse<>(
                                     "Fetch file related to memo successfully",
-                                    success
+                                    fileDetailMapper.toDto(success)
                             );
                             return Response
                                     .status(Response.Status.OK)

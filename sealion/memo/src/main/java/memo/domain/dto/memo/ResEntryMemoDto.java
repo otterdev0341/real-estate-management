@@ -3,6 +3,7 @@ package memo.domain.dto.memo;
 import common.domain.dto.fileDetail.ResEntryFileDetailDto;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,6 +12,8 @@ public class ResEntryMemoDto {
 
     private UUID id;
 
+    private String name;
+
     private String detail;
 
     private String memoType;
@@ -18,4 +21,8 @@ public class ResEntryMemoDto {
     private String createdBy;
 
     private List<ResEntryFileDetailDto> files;
+
+    private LocalDateTime memoDate;
+
+    private LocalDateTime updatedAt;
 }

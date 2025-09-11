@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -49,6 +50,9 @@ public class Memo extends BaseTime implements HasFileDetails {
 
     @Column(name = "detail", length = 255)
     private String detail;
+
+    @Column(name = "memo_date")
+    private LocalDateTime memoDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
@@ -146,7 +150,5 @@ public class Memo extends BaseTime implements HasFileDetails {
         this.getProperties().remove(property);
         property.getMemos().remove(this);
     }
-
-
 
 }

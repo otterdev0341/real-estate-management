@@ -68,6 +68,9 @@ public class Property extends BaseTime {
     @Column(name = "price", precision = 10, scale = 2)
     private BigDecimal price;
 
+    @Column(name = "budget", precision = 10, scale = 2)
+    private BigDecimal budget;
+
     @Column(name = "f_s_p", precision = 10, scale = 2)
     private BigDecimal fsp;
 

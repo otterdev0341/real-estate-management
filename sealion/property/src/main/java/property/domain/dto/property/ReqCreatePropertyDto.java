@@ -31,6 +31,8 @@ public class ReqCreatePropertyDto {
 
     private BigDecimal fsp;
 
+    private BigDecimal Budget;
+
     private UUID propertyStatus;
 
     private UUID ownerBy;
