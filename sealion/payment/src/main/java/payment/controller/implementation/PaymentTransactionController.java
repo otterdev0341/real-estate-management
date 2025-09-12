@@ -76,6 +76,7 @@ public class PaymentTransactionController extends BaseController implements Inte
     @Override
     public Response createNewPayment(@BeanParam @Valid ReqCreatePaymentWrapperForm reqCreatePaymentWrapperForm) {
         UUID userId = getCurrentUserIdOrThrow();
+
         return paymentTransactionService.createNewPaymentTransaction(reqCreatePaymentWrapperForm, userId)
                 .fold(
                         error -> {

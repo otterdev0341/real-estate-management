@@ -102,7 +102,7 @@ public class ExpenseTypeRepositoryImpl implements PanacheRepositoryBase<ExpenseT
             }
 
             int page = query.getPage() != null ? query.getPage() : 0;
-            int size = query.getSize() != null ? query.getSize() : 10;
+            int size = query.getSize() != null ? query.getSize() : 100;
 
             // Pagination logic
             int skip = page * size;

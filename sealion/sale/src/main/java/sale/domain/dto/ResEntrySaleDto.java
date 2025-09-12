@@ -15,6 +15,8 @@ public class ResEntrySaleDto {
 
     private UUID id;
 
+    private String note;
+
     private String transactionType;
 
     private String property;

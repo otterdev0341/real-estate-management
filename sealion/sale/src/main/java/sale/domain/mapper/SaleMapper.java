@@ -20,6 +20,7 @@ public interface SaleMapper {
     @Mapping(source = "contact", target = "contact", qualifiedByName = "mapContactBusinessDetail")
     @Mapping(source = "property", target = "property", qualifiedByName = "mapProperty")
     @Mapping(source = "transaction.createdBy", target = "createdBy", qualifiedByName = "mapCreatedByUsername")
+    @Mapping(source = "transaction", target = "note", qualifiedByName = "mapSaleNote")
     ResEntrySaleDto toDto(SaleTransaction saleTransaction);
 
     List<ResEntrySaleDto> toDtoList(List<SaleTransaction> saleTransactions);
@@ -43,6 +44,11 @@ public interface SaleMapper {
     @Named("mapTransactionTypeDetail")
     default String mapTransactionTypeDetail(TransactionType transactionType) {
         return transactionType != null ? transactionType.getDetail() : null;
+    }
+
+    @Named("mapSaleNote")
+    default String mapSaleNote(Transaction transaction) {
+        return transaction != null ? transaction.getNote() : null;
     }
 
     @Named("mapProperty")

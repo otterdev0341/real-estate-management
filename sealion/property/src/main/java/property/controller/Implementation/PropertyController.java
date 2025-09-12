@@ -7,6 +7,7 @@ import common.domain.dto.base.ResListBaseDto;
 import common.domain.dto.fileDetail.RequestAttachFile;
 import common.domain.dto.query.BaseQuery;
 import common.domain.entity.FileDetail;
+import common.domain.mapper.FileDetailMapper;
 import common.response.ErrorResponse;
 import common.response.SuccessResponse;
 import common.service.declare.fileAssetManagement.FileAssetManagementService;
@@ -69,6 +70,7 @@ public class PropertyController extends BaseController implements InternalProper
     private final PropertyMapper propertyMapper;
     private final PropertyTypeMapper propertyTypeMapper;
     private final MemoMapper memoMapper;
+    private final FileDetailMapper fileDetailMapper;
 
 
 
@@ -80,7 +82,8 @@ public class PropertyController extends BaseController implements InternalProper
             @Named("propertyService") InternalMemoCrossPropertyService memoCrossPropertyService,
             PropertyMapper propertyMapper,
             PropertyTypeMapper propertyTypeMapper,
-            MemoMapper memoMapper
+            MemoMapper memoMapper,
+            FileDetailMapper fileDetailMapper
     ) {
         this.propertyService = propertyService;
         this.declarePropertyService = declarePropertyService;
@@ -89,6 +92,7 @@ public class PropertyController extends BaseController implements InternalProper
         this.propertyTypeMapper = propertyTypeMapper;
         this.memoCrossPropertyService = memoCrossPropertyService;
         this.memoMapper = memoMapper;
+        this.fileDetailMapper = fileDetailMapper;
     }
 
     @POST
@@ -193,9 +197,9 @@ public class PropertyController extends BaseController implements InternalProper
                                     .build();
                         },
                         success -> {
-                            SuccessResponse<List<FileDetail>> fetchSuccessResponse = new SuccessResponse<>(
+                            SuccessResponse<?> fetchSuccessResponse = new SuccessResponse<>(
                                     "Fetch file related to property successfully",
-                                    success
+                                    fileDetailMapper.toDto(success)
                             );
                             return Response
                                     .status(Response.Status.OK)
