@@ -250,12 +250,14 @@ public class InvestmentTransactionService implements InternalInvestmentTransacti
             Property property = propertyEither.getRight();
             investmentTransaction.setProperty(property);
         }
-        // if old created not the same as update created
-        if (reqUpdateInvestmentWrapper.getData() != null) {
-            investmentTransaction.setInvestmentDate(reqUpdateInvestmentWrapper.getData().getPersistInvestmentDate());
+
+        // Update the investment date from the DTO.
+        investmentTransaction.setInvestmentDate(reqUpdateInvestmentWrapper.getData().getPersistInvestmentDate());
+
+        // Update the note on the associated transaction.
+        if (reqUpdateInvestmentWrapper.getData().getNote() != null) {
+            investmentTransaction.getTransaction().setNote(reqUpdateInvestmentWrapper.getData().getNote());
         }
-        // if old note the same as update created
-        investmentTransaction.getTransaction().setNote(reqUpdateInvestmentWrapper.getData().getNote());
 
         return Either.right(investmentTransaction);
     }
